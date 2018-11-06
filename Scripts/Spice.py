@@ -15,7 +15,7 @@ def compute_view_frustrum(instrument):
     pass
 
 
-def spacecraft_position_and_orientation(spacecraft,point):
+def spacecraft_position_and_orientation(spacecraft, point):
     """
     stub
     :param spacecraft: Data structure that models the spacecraft.
