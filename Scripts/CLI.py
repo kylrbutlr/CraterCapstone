@@ -31,7 +31,9 @@ def main(spice_kernel, shape, ast_img, ex_time):
     :return: poly-line (array) of points that outline the visible portions of the specified body
     """
 
-    click.echo("Spice Kernel File: %s\nExposure time: %s\nShape: %s\nAsteroid Image: %s" % (spice_kernel, ex_time, shape, ast_img)) #TODO replace with real instructions
+    output = [ (i, i + 1) for i in range(5) ] # TODO: replace with actual output after processing the input
+    click.echo('Poly-line generated:')
+    click.echo(output)
 
 if __name__ == '__main__':
     main()
