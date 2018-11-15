@@ -9,6 +9,7 @@ and generates a poly-line (list of coordinates) as output.
 import click
 
 @click.command()
+# TODO add a separate option for each kernel file (Brian Vu and Nicole Darmawaskita)
 @click.option('--spice-kernel', prompt='Spice kernel file', help='The file path of the spice kernel')
 @click.option('--image', default='', help='Asteroid image')
 @click.option('--shape', default='Irregular', help='The configuration of the shape for the model')
