@@ -1,1 +1,82 @@
-# Temp file for the Test directory
+TESTING PROCEDURE
+
+Written by: Benjamin Ladick
+----------------------------
+Once a module is created (a new python file), a unit test file must be created with it.
+
+STEP 1: Create a unit test
+    The file structure under the "test" directory should be 100% identical to the project file structure.
+    For example, if you create a module a/b/c/new_module.py, then a new unit test must be made here: tests/a/b/c/test_new_module.py
+
+    NOTE: ALL DIRECTORIES ARE REQUIRED TO HAVE AN __init__.py FILE. PLEASE MAKE SURE THIS IS THE CASE AND CREATE A NEW ONE IF YOU MAKE A NEW DIRECTORY!
+
+STEP 2: Set up the unit test
+    The following should be done to set up the unit test file:
+        1. The unittest module and module under test should be imported.
+            In order for the test to reach the file under test, its path must be added to the list of system paths.
+
+            Here's an example for a unit test for the module a/b/c/new_module.py:
+
+                import sys
+                import os
+
+                path.append( os.path.join( os.path.dirname( os.path.abspath( __file__ ) ), '..\..\..\..\Scripts' ) )
+
+                import unittest
+                from a.b.c.new_module import *
+
+        2. Create a class that will hold all of the unit tests for the module
+            Example:
+                class TestNewModule(unittest.TestCase):
+                    pass # TODO add test cases
+
+        3. Create a main() function that runs the tests when the program is executed. Do this by adding the following code to any new unit test program:
+
+            if __name__ == "__main__":
+                unittest.main()
+
+STEP 3: Add tests for each function in the module
+    Example using a module with the following methods:
+        def method1():
+            ...
+
+        def method2(x, y):
+            ...
+
+        def method2_overloaded(x):
+            ...
+
+    Example:
+        def test_method1():
+            ...test code...
+
+        def test_method2():
+            ...test code...
+
+        def test_method2_overloaded():
+            ..test code...
+
+    Each method should be tested and the function that tests it shall have the same name but with a "test_" prefix just like the example above.
+
+STEP 4: Add the unit test to run_mod_tests.py
+    In order to run the new module test with all other module tests, open run_mod_tests.py directly in the "Tests" directory.
+
+    Then import your module.
+    With a/b/c/test_new_module.py:
+        import test.a.b.c.test_new_module
+
+    Next, add the module to the "mod_tests" array directly under the imports:
+        mod_tests = [
+            ...,
+            test.a.b.c.test_new_module
+        ]
+
+    That is all that is needed. In order to run all module tests, run the run_mod_tests.py program.
+
+The following link should get you more familiar with writing tests with self.assertEqual and other assertion methods:
+    https://docs.python.org/2/library/unittest.html
+
+The following link should get you familiar with creating mocked functions in unittest when needed to test a function:
+    https://docs.python.org/3/library/unittest.mock-examples.html
+
+Happy testing :)
