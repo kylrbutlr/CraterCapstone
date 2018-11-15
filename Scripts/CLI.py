@@ -1,5 +1,9 @@
 """
-This is the CLI module. More documentation to come.
+This is the CLI module.
+
+This is the input/output module for the system. It allows a user to
+input required data (i.e. spice kernel file, asteroid image, shape, and execution time)
+and generates a poly-line (list of coordinates) as output.
 """
 # Import packages/modules here
 import click
@@ -11,8 +15,10 @@ import click
 @click.option('--ex-time', default=0.0, help='Time of exposure')
 def main(spice_kernel, shape, ast_img, ex_time):
     """
-    This a basic example a command line interface.
-    This will be changed later on.
+    This is the input/output of the system. To use it, simply run "python CLI.py" in a command window.
+    Be sure that Python version 3.7.1 or higher is installed!
+
+    CLI Version: 1.0
 
     :param spice-kernel: The file path of the spice kernel\n
     :type spice-kernel: str\n
@@ -24,8 +30,8 @@ def main(spice_kernel, shape, ast_img, ex_time):
     :type count: float\n
     :return: poly-line (array) of points that outline the visible portions of the specified body
     """
-    
-    click.echo("Spice Kernel File: %s\nExposure time: %s\nShape: %s\nAsteroid Image: %s" % (spice_kernel, ex_time, shape, ast_img))
+
+    click.echo("Spice Kernel File: %s\nExposure time: %s\nShape: %s\nAsteroid Image: %s" % (spice_kernel, ex_time, shape, ast_img)) #TODO replace with real instructions
 
 if __name__ == '__main__':
     main()
