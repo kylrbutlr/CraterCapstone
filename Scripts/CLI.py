@@ -10,10 +10,11 @@ import click
 
 @click.command()
 @click.option('--spice-kernel', prompt='Spice kernel file', help='The file path of the spice kernel')
-@click.option('--ast-img', default='', help='Asteroid image')
+@click.option('--image', default='', help='Asteroid image')
 @click.option('--shape', default='Irregular', help='The configuration of the shape for the model')
-@click.option('--ex-time', default=0.0, help='Time of exposure')
-def main(spice_kernel, shape, ast_img, ex_time):
+@click.option('--instrument', default='Camera', help='Instrument used to capture photo')
+@click.option('--time', default=0.0, help='Time of exposure')
+def main(spice_kernel, shape, instrument, image, time):
     """
     This is the input/output of the system. To use it, simply run "python CLI.py" in a command window.
     Be sure that Python version 3.7.1 or higher is installed!
@@ -24,9 +25,11 @@ def main(spice_kernel, shape, ast_img, ex_time):
     :type spice-kernel: str\n
     :param shape: The configuration of the shape for the model\n
     :type shape: str\n
-    :param ast-img: Asteroid image\n
+    :param image: Asteroid image\n
     :type shape: str\n
-    :param ex-time: Time of exposure\n
+    :param instrument: Instrument used to capture photo\n
+    :type instrument: str\n
+    :param time: Time of exposure\n
     :type count: float\n
     :return: poly-line (array) of points that outline the visible portions of the specified body
     """
