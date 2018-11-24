@@ -8,7 +8,8 @@ import spiceypy as spice
 import datetime as datetime
 import enum
 
-
+spice.dskxsi
+spice.dskxv
 def compute_view_frustrum(instrument):
     """
     stub
@@ -211,7 +212,7 @@ def print_ver():
 #Testing garbage out
 if __name__ == '__main__':
     print_ver()
-    load_kernel('kernels/mk/ROS_OPS.TM')
+    load_kernel('../Tests/rosetta/kernels/mk/ROS_OPS.TM')
     print('break')
     print(spice.ktotal(KernelType.SPK.value))
     print(convert_utc_to_et(datetime.date.today()))
