@@ -9,7 +9,7 @@ import datetime as datetime
 import enum
 
 
-def compute_view_frustrum(instrument):
+def compute_view_frustum(instrument):
     """
     stub
     :param instrument: Data structure that models the instrument.
@@ -27,9 +27,11 @@ def spacecraft_position_and_orientation(spacecraft, point):
     """
     pass
 
+
 """
 Create Spice Wrappers Here:
 """
+
 
 ###########
 # Kernels #
@@ -44,20 +46,20 @@ class KernelType(enum.Enum):
     for more info about each type refer to:
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/12_intro_to_kernels.pdf
     """
-    SPK = 'spk'     # **Spacecraft and Planet Ephemeris
-    PCK = 'pck'     # Planetary Constants
-    IK = 'ik'       # **Instrument
-    CK = 'ck'       # **Camera Matrix (Orientation)
-    EK = 'ek'       # Events
-    FK = 'fk'       # **Reference Frame Specification
-    SCLK = 'sclk'   # **Spacecraft Clock Correlation
-    LSK = 'lsk'     # **Leap Seconds (Time)
-    MK = 'mk'       # **Meta-Kernel (for loading many kernels)
-    DSK = 'dsk'     # Digital Shape Kernel
-    DBK = 'dbk'     # Database Mechanism
+    SPK = 'spk'  # **Spacecraft and Planet Ephemeris
+    PCK = 'pck'  # Planetary Constants
+    IK = 'ik'  # **Instrument
+    CK = 'ck'  # **Camera Matrix (Orientation)
+    EK = 'ek'  # Events
+    FK = 'fk'  # **Reference Frame Specification
+    SCLK = 'sclk'  # **Spacecraft Clock Correlation
+    LSK = 'lsk'  # **Leap Seconds (Time)
+    MK = 'mk'  # **Meta-Kernel (for loading many kernels)
+    DSK = 'dsk'  # Digital Shape Kernel
+    DBK = 'dbk'  # Database Mechanism
 
 
-def load_kernel(file_name : str):
+def load_kernel(file_name: str):
     """
     Load single or multiple kernels (through meta-kernel file, .mk)
 
@@ -66,7 +68,7 @@ def load_kernel(file_name : str):
     spice.furnsh(file_name)
 
 
-def unload_kernel(file_name : str):
+def unload_kernel(file_name: str):
     """
     Unload a single or multiple kernels (through meta-kernel file, .mk)
     :param file_name: str file path of kernel
@@ -81,7 +83,7 @@ def unload_all_kernels():
     spice.kclear()
 
 
-def check_number_kernels(ktype : KernelType, value: int):
+def check_number_kernels(ktype: KernelType, value: int):
     """
     Check how many kernels are loaded for testing purposes
     :param ktype: Kernel enum type
@@ -89,6 +91,7 @@ def check_number_kernels(ktype : KernelType, value: int):
     :return: boolean if there is a correct amount of kernels loaded
     """
     return spice.ktotal(ktype.value) == value
+
 
 ########
 # Time #
@@ -104,8 +107,28 @@ def convert_utc_to_et(date: datetime):
     :return: time in Ephemeris Time Format(float)
     """
 
-    w = datetime.date.strftime(date,'%b %d, %Y')
+    w = datetime.date.strftime(date, '%b %d, %Y')
     return spice.utc2et(w)
+
+
+#######
+# FOV #
+#######
+
+
+def is_ray_in_FOV(instrument_id, ray_direction, rframe, abcorr, observer, et):
+    """
+    Determines if a specified ray is in FOV of a specified instrument at a given time
+    :param instrument_id: STR Name or ID code of the instrument
+    :param ray_direction: 3-Element Array of floats - Ray's direction vector
+    :param rframe: STR body-fixed, body-centered frame for target body
+    :param abcorr: STR Aberration correction flag
+    :param observer: STR Name or ID code of the observer
+    :param et: FLOAT time of the observation (seconds past J2000)
+    :return: BOOLEAN visibility flag
+    """
+    return spice.fovray(instrument_id, ray_direction, rframe, abcorr, observer, et)
+
 
 ###############
 # SPK Kernels #
@@ -132,7 +155,7 @@ def find_body_position(main_body: str, time: float, reference_frame: str, correc
     return spice.spkpos(main_body, time, reference_frame, correction, observing_body)
 
 
-def find_frame_transformation(from_object: str, to_object:str, time: float):
+def find_frame_transformation(from_object: str, to_object: str, time: float):
     """
     Returns the transformation matrix of how the frame is moving
 
@@ -149,13 +172,14 @@ def find_frame_transformation(from_object: str, to_object:str, time: float):
 
     return spice.pxform(from_object, to_object, time)
 
+
 ##############
 # DSK Kernel #
 ##############
 
 
 def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
-                               observer_name: str, direction_reference:str, direction_vector: list,
+                               observer_name: str, direction_reference: str, direction_vector: list,
                                method: str = 'DSK/UNPRIORITIZED'):
     """
     Finds where a ray intercepts a surface in Cartesian coordinates
@@ -208,7 +232,8 @@ def print_ver():
     """
     print(spice.tkvrsn('TOOLKIT'))
 
-#Testing garbage out
+
+# Testing garbage out
 if __name__ == '__main__':
     print_ver()
     load_kernel('kernels/mk/ROS_OPS.TM')
