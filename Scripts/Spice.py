@@ -7,7 +7,8 @@ More documentation to come.
 import spiceypy as spice
 import datetime as datetime
 import enum
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 def compute_view_frustum(instrument):
     """
@@ -243,3 +244,86 @@ if __name__ == '__main__':
     frame, vector, number, bounds, bounds2 = find_fov(-226807)
 
     print(bounds2)
+
+
+    # Messing around with positions of Rosetta mission
+
+    step = 4000
+    # we are going to get positions between these two dates
+    utc = ['2014-08-06', '2016-12-31']
+
+    # get et values one and two, we could vectorize str2et
+    etOne = spice.str2et(utc[0])
+    etTwo = spice.str2et(utc[1])
+    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
+
+    # get times
+    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
+
+    # check first few times:
+    print(times[0:3])
+
+    positions, lightTimes = spice.spkpos('ROSETTA', times, 'J2000', 'NONE', 'EARTH_BARYCENTER')
+
+    # Positions is a 3xN vector of XYZ positions
+    print("Positions: ")
+    print(positions[0])
+
+    # Light times is a N vector of time
+    print("Light Times: ")
+    print(lightTimes[0])
+
+    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
+    fig = plt.figure(figsize=(9, 9))
+    ax  = fig.add_subplot(111)
+    ax.plot(positions[0], positions[1], positions[2])
+    plt.title('Test')
+    plt.show()
+
+    unload_all_kernels()
+
+    # Cassini Example from https://media.readthedocs.org/pdf/spiceypy/master/spiceypy.pdf
+    load_kernel('kernels/naif0009.tls')
+    load_kernel('kernels/cas00084.tsc')
+    load_kernel('kernels/cpck05Mar2004.tpc')
+    load_kernel('kernels/020514_SE_SAT105.bsp')
+    load_kernel('kernels/981005_PLTEPH-DE405S.bsp')
+    load_kernel('kernels/030201AP_SK_SM546_T45.bsp')
+    load_kernel('kernels/04135_04171pc_psiv2.bc')
+    load_kernel('kernels/cas_v37.tf')
+    load_kernel('kernels/cas_iss_v09.ti')
+    print(spice.ktotal(KernelType.SPK.value))
+
+    step = 4000
+    # we are going to get positions between these two dates
+    utc = ['2004-06-20', '2005-12-01']
+
+    # get et values one and two, we could vectorize str2et
+    etOne = spice.str2et(utc[0])
+    etTwo = spice.str2et(utc[1])
+    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
+
+    # get times
+    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
+
+    # check first few times:
+    print(times[0:3])
+
+    positions, lightTimes = spice.spkpos('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
+
+    # Positions is a 3xN vector of XYZ positions
+    print("Positions: ")
+    print(positions[0])
+
+    # Light times is a N vector of time
+    print("Light Times: ")
+    print(lightTimes[0])
+
+    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
+    fig = plt.figure(figsize=(9, 9))
+    ax  = fig.add_subplot(111)
+    ax.plot(positions[0], positions[1], positions[2])
+    plt.title('SpiceyPy Cassini Position Example from Jun 20, 2004 to Dec 1, 2005')
+    plt.show()
+    unload_all_kernels()
+
