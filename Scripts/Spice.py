@@ -84,7 +84,7 @@ def unload_all_kernels():
     spice.kclear()
 
 
-def check_number_kernels(ktype: KernelType, value: int):
+def kernels_total(ktype: KernelType, value: int):
     """
     Check how many kernels are loaded for testing purposes
     :param ktype: Kernel enum type
@@ -117,7 +117,7 @@ def convert_utc_to_et(date: datetime):
 #######
 
 
-def is_ray_in_FOV(instrument_id, ray_direction, rframe, abcorr, observer, et):
+def is_ray_in_fov(instrument_id, ray_direction, rframe, abcorr, observer, et):
     """
     Determines if a specified ray is in FOV of a specified instrument at a given time
     :param instrument_id: STR Name or ID code of the instrument
@@ -136,7 +136,7 @@ def is_ray_in_FOV(instrument_id, ray_direction, rframe, abcorr, observer, et):
 ###############
 
 
-def find_body_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
+def sp_kernel_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
     """
     Loaded from SPK file
     Returns the position of a body relative to another observing body
@@ -156,7 +156,7 @@ def find_body_position(main_body: str, time: float, reference_frame: str, correc
     return spice.spkpos(main_body, time, reference_frame, correction, observing_body)
 
 
-def find_frame_transformation(from_object: str, to_object: str, time: float):
+def position_transformation_matrix(from_object: str, to_object: str, time: float):
     """
     Returns the transformation matrix of how the frame is moving
 
@@ -179,7 +179,7 @@ def find_frame_transformation(from_object: str, to_object: str, time: float):
 ##############
 
 
-def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
+def surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
                                observer_name: str, direction_reference: str, direction_vector: list,
                                method: str = 'DSK/UNPRIORITIZED'):
     """
@@ -205,7 +205,7 @@ def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, c
                         direction_vector)
 
 
-def find_fov(instrument_id: int, max_return: int = 10):
+def get_instrument_fov(instrument_id: int, max_return: int = 10):
     """
     Return information about the instrument such as the shape, reference frame, direction of view, and the corner
     of the instruments. The shape can be a 'POLYGON', 'RECTANGLE', 'CIRCLE', or 'ELLIPSE'.
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     print('break')
     print(spice.ktotal(KernelType.SPK.value))
     print(convert_utc_to_et(datetime.date.today()))
-    frame, vector, number, bounds, bounds2 = find_fov(-226807)
+    frame, vector, number, bounds, bounds2 = get_instrument_fov(-226807)
 
     print(bounds2)
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     # check first few times:
     print(times[0:3])
 
-    positions, lightTimes = spice.spkpos('ROSETTA', times, 'J2000', 'NONE', 'EARTH_BARYCENTER')
+    positions, lightTimes = spice.find_body_position('ROSETTA', times, 'J2000', 'NONE', 'EARTH_BARYCENTER')
 
     # Positions is a 3xN vector of XYZ positions
     print("Positions: ")
@@ -309,7 +309,7 @@ if __name__ == '__main__':
     # check first few times:
     print(times[0:3])
 
-    positions, lightTimes = spice.spkpos('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
+    positions, lightTimes = spice.find_body_position('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
 
     # Positions is a 3xN vector of XYZ positions
     print("Positions: ")
