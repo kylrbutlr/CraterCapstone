@@ -99,7 +99,7 @@ def kernels_total(ktype: KernelType, value: int):
 ########
 
 
-def convert_utc_to_et(date: datetime):
+def convert_utc_to_et(date: str):
     """
     Converts standard UTC date into ET (Ephemeris Time)
 
@@ -108,8 +108,7 @@ def convert_utc_to_et(date: datetime):
     :return: time in Ephemeris Time Format(float)
     """
 
-    w = datetime.date.strftime(date, '%b %d, %Y')
-    return spice.utc2et(w)
+    return spice.utc2et(date)
 
 
 #######
@@ -141,7 +140,7 @@ def sp_kernel_position(main_body: str, time: float, reference_frame: str, correc
     Loaded from SPK file
     Returns the position of a body relative to another observing body
 
-    Example: body_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
+    Example: sp_kernel_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
 
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/spkpos_c.html
     :param main_body: the name of target body
@@ -160,7 +159,7 @@ def position_transformation_matrix(from_object: str, to_object: str, time: float
     """
     Returns the transformation matrix of how the frame is moving
 
-    Example: find_frame_transformation ( 'IAU_EARTH', 'J2000', ET  )
+    Example: position_transformation_matrix ( 'IAU_EARTH', 'J2000', ET  )
 
     ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/FORTRAN/spicelib/pxform.html
 
@@ -240,9 +239,10 @@ if __name__ == '__main__':
     load_kernel('kernels/mk/ROS_OPS.TM')
     print('break')
     print(spice.ktotal(KernelType.SPK.value))
-    print(convert_utc_to_et(datetime.date.today()))
+    print(convert_utc_to_et('2018-05-05'))
     frame, vector, number, bounds, bounds2 = get_instrument_fov(-226807)
 
+    print('bounds')
     print(bounds2)
 
 
@@ -253,8 +253,8 @@ if __name__ == '__main__':
     utc = ['2014-08-06', '2016-12-31']
 
     # get et values one and two, we could vectorize str2et
-    etOne = spice.str2et(utc[0])
-    etTwo = spice.str2et(utc[1])
+    etOne = convert_utc_to_et(utc[0])
+    etTwo = convert_utc_to_et(utc[1])
     print("ET One: {}, ET Two: {}".format(etOne, etTwo))
 
     # get times
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     # check first few times:
     print(times[0:3])
 
-    positions, lightTimes = spice.find_body_position('ROSETTA', times, 'J2000', 'NONE', 'EARTH_BARYCENTER')
+    positions, lightTimes = sp_kernel_position('ROSETTA', times, 'J2000', 'NONE', 'EARTH BARYCENTER')
 
     # Positions is a 3xN vector of XYZ positions
     print("Positions: ")
@@ -299,8 +299,8 @@ if __name__ == '__main__':
     utc = ['2004-06-20', '2005-12-01']
 
     # get et values one and two, we could vectorize str2et
-    etOne = spice.str2et(utc[0])
-    etTwo = spice.str2et(utc[1])
+    etOne = convert_utc_to_et(utc[0])
+    etTwo = convert_utc_to_et(utc[1])
     print("ET One: {}, ET Two: {}".format(etOne, etTwo))
 
     # get times
@@ -309,7 +309,7 @@ if __name__ == '__main__':
     # check first few times:
     print(times[0:3])
 
-    positions, lightTimes = spice.find_body_position('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
+    positions, lightTimes = sp_kernel_position('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
 
     # Positions is a 3xN vector of XYZ positions
     print("Positions: ")
