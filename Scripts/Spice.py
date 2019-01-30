@@ -96,7 +96,7 @@ def check_number_kernels(ktype : KernelType, value: int):
 ########
 
 
-def convert_utc_to_et(date: datetime):
+def convert_utc_to_et(date: str):
     """
     Converts standard UTC date into ET (Ephemeris Time)
 
@@ -105,8 +105,8 @@ def convert_utc_to_et(date: datetime):
     :return: time in Ephemeris Time Format(float)
     """
 
-    w = datetime.date.strftime(date,'%b %d, %Y')
-    return spice.utc2et(w)
+    # w = datetime.date.strftime(date,'%b %d, %Y')
+    return spice.utc2et(date)
 
 ###############
 # SPK Kernels #
