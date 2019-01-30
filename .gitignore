@@ -1,2 +1,12 @@
 .idea/
 venv/
+*.bsp
+*.bc
+*.tsc
+*.ti
+*.tf
+*.TPC
+*.BPC
+*.TLS
+*.TM
+*.bds
