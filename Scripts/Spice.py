@@ -7,9 +7,10 @@ More documentation to come.
 import spiceypy as spice
 import datetime as datetime
 import enum
+import numpy as np
+import matplotlib.pyplot as plt
 
-
-def compute_view_frustrum(instrument):
+def compute_view_frustum(instrument):
     """
     stub
     :param instrument: Data structure that models the instrument.
@@ -27,9 +28,11 @@ def spacecraft_position_and_orientation(spacecraft, point):
     """
     pass
 
+
 """
 Create Spice Wrappers Here:
 """
+
 
 ###########
 # Kernels #
@@ -44,20 +47,20 @@ class KernelType(enum.Enum):
     for more info about each type refer to:
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/12_intro_to_kernels.pdf
     """
-    SPK = 'spk'     # **Spacecraft and Planet Ephemeris
-    PCK = 'pck'     # Planetary Constants
-    IK = 'ik'       # **Instrument
-    CK = 'ck'       # **Camera Matrix (Orientation)
-    EK = 'ek'       # Events
-    FK = 'fk'       # **Reference Frame Specification
-    SCLK = 'sclk'   # **Spacecraft Clock Correlation
-    LSK = 'lsk'     # **Leap Seconds (Time)
-    MK = 'mk'       # **Meta-Kernel (for loading many kernels)
-    DSK = 'dsk'     # Digital Shape Kernel
-    DBK = 'dbk'     # Database Mechanism
+    SPK = 'spk'  # **Spacecraft and Planet Ephemeris
+    PCK = 'pck'  # Planetary Constants
+    IK = 'ik'  # **Instrument
+    CK = 'ck'  # **Camera Matrix (Orientation)
+    EK = 'ek'  # Events
+    FK = 'fk'  # **Reference Frame Specification
+    SCLK = 'sclk'  # **Spacecraft Clock Correlation
+    LSK = 'lsk'  # **Leap Seconds (Time)
+    MK = 'mk'  # **Meta-Kernel (for loading many kernels)
+    DSK = 'dsk'  # Digital Shape Kernel
+    DBK = 'dbk'  # Database Mechanism
 
 
-def load_kernel(file_name : str):
+def load_kernel(file_name: str):
     """
     Load single or multiple kernels (through meta-kernel file, .mk)
 
@@ -66,7 +69,7 @@ def load_kernel(file_name : str):
     spice.furnsh(file_name)
 
 
-def unload_kernel(file_name : str):
+def unload_kernel(file_name: str):
     """
     Unload a single or multiple kernels (through meta-kernel file, .mk)
     :param file_name: str file path of kernel
@@ -81,7 +84,7 @@ def unload_all_kernels():
     spice.kclear()
 
 
-def check_number_kernels(ktype : KernelType, value: int):
+def kernels_total(ktype: KernelType, value: int):
     """
     Check how many kernels are loaded for testing purposes
     :param ktype: Kernel enum type
@@ -90,12 +93,13 @@ def check_number_kernels(ktype : KernelType, value: int):
     """
     return spice.ktotal(ktype.value) == value
 
+
 ########
 # Time #
 ########
 
 
-def convert_utc_to_et(date: datetime):
+def convert_utc_to_et(date: str):
     """
     Converts standard UTC date into ET (Ephemeris Time)
 
@@ -104,20 +108,39 @@ def convert_utc_to_et(date: datetime):
     :return: time in Ephemeris Time Format(float)
     """
 
-    w = datetime.date.strftime(date,'%b %d, %Y')
-    return spice.utc2et(w)
+    return spice.utc2et(date)
+
+
+#######
+# FOV #
+#######
+
+
+def is_ray_in_fov(instrument_id, ray_direction, rframe, abcorr, observer, et):
+    """
+    Determines if a specified ray is in FOV of a specified instrument at a given time
+    :param instrument_id: STR Name or ID code of the instrument
+    :param ray_direction: 3-Element Array of floats - Ray's direction vector
+    :param rframe: STR body-fixed, body-centered frame for target body
+    :param abcorr: STR Aberration correction flag
+    :param observer: STR Name or ID code of the observer
+    :param et: FLOAT time of the observation (seconds past J2000)
+    :return: BOOLEAN visibility flag
+    """
+    return spice.fovray(instrument_id, ray_direction, rframe, abcorr, observer, et)
+
 
 ###############
 # SPK Kernels #
 ###############
 
 
-def find_body_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
+def sp_kernel_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
     """
     Loaded from SPK file
     Returns the position of a body relative to another observing body
 
-    Example: body_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
+    Example: sp_kernel_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
 
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/spkpos_c.html
     :param main_body: the name of target body
@@ -132,11 +155,11 @@ def find_body_position(main_body: str, time: float, reference_frame: str, correc
     return spice.spkpos(main_body, time, reference_frame, correction, observing_body)
 
 
-def find_frame_transformation(from_object: str, to_object:str, time: float):
+def position_transformation_matrix(from_object: str, to_object: str, time: float):
     """
     Returns the transformation matrix of how the frame is moving
 
-    Example: find_frame_transformation ( 'IAU_EARTH', 'J2000', ET  )
+    Example: position_transformation_matrix ( 'IAU_EARTH', 'J2000', ET  )
 
     ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/FORTRAN/spicelib/pxform.html
 
@@ -149,13 +172,14 @@ def find_frame_transformation(from_object: str, to_object:str, time: float):
 
     return spice.pxform(from_object, to_object, time)
 
+
 ##############
 # DSK Kernel #
 ##############
 
 
-def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
-                               observer_name: str, direction_reference:str, direction_vector: list,
+def surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
+                               observer_name: str, direction_reference: str, direction_vector: list,
                                method: str = 'DSK/UNPRIORITIZED'):
     """
     Finds where a ray intercepts a surface in Cartesian coordinates
@@ -180,7 +204,7 @@ def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, c
                         direction_vector)
 
 
-def find_fov(instrument_id: int, max_return: int = 10):
+def get_instrument_fov(instrument_id: int, max_return: int = 10):
     """
     Return information about the instrument such as the shape, reference frame, direction of view, and the corner
     of the instruments. The shape can be a 'POLYGON', 'RECTANGLE', 'CIRCLE', or 'ELLIPSE'.
@@ -208,13 +232,98 @@ def print_ver():
     """
     print(spice.tkvrsn('TOOLKIT'))
 
-#Testing garbage out
+
+# Testing garbage out
 if __name__ == '__main__':
     print_ver()
     load_kernel('kernels/mk/ROS_OPS.TM')
     print('break')
     print(spice.ktotal(KernelType.SPK.value))
-    print(convert_utc_to_et(datetime.date.today()))
-    frame, vector, number, bounds, bounds2 = find_fov(-226807)
+    print(convert_utc_to_et('2018-05-05'))
+    frame, vector, number, bounds, bounds2 = get_instrument_fov(-226807)
 
+    print('bounds')
     print(bounds2)
+
+
+    # Messing around with positions of Rosetta mission
+
+    step = 4000
+    # we are going to get positions between these two dates
+    utc = ['2014-08-06', '2016-12-31']
+
+    # get et values one and two, we could vectorize str2et
+    etOne = convert_utc_to_et(utc[0])
+    etTwo = convert_utc_to_et(utc[1])
+    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
+
+    # get times
+    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
+
+    # check first few times:
+    print(times[0:3])
+
+    positions, lightTimes = sp_kernel_position('ROSETTA', times, 'J2000', 'NONE', 'EARTH BARYCENTER')
+
+    # Positions is a 3xN vector of XYZ positions
+    print("Positions: ")
+    print(positions[0])
+
+    # Light times is a N vector of time
+    print("Light Times: ")
+    print(lightTimes[0])
+
+    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
+    fig = plt.figure(figsize=(9, 9))
+    ax  = fig.add_subplot(111)
+    ax.plot(positions[0], positions[1], positions[2])
+    plt.title('Test')
+    plt.show()
+
+    unload_all_kernels()
+
+    # Cassini Example from https://media.readthedocs.org/pdf/spiceypy/master/spiceypy.pdf
+    load_kernel('kernels/naif0009.tls')
+    load_kernel('kernels/cas00084.tsc')
+    load_kernel('kernels/cpck05Mar2004.tpc')
+    load_kernel('kernels/020514_SE_SAT105.bsp')
+    load_kernel('kernels/981005_PLTEPH-DE405S.bsp')
+    load_kernel('kernels/030201AP_SK_SM546_T45.bsp')
+    load_kernel('kernels/04135_04171pc_psiv2.bc')
+    load_kernel('kernels/cas_v37.tf')
+    load_kernel('kernels/cas_iss_v09.ti')
+    print(spice.ktotal(KernelType.SPK.value))
+
+    step = 4000
+    # we are going to get positions between these two dates
+    utc = ['2004-06-20', '2005-12-01']
+
+    # get et values one and two, we could vectorize str2et
+    etOne = convert_utc_to_et(utc[0])
+    etTwo = convert_utc_to_et(utc[1])
+    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
+
+    # get times
+    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
+
+    # check first few times:
+    print(times[0:3])
+
+    positions, lightTimes = sp_kernel_position('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
+
+    # Positions is a 3xN vector of XYZ positions
+    print("Positions: ")
+    print(positions[0])
+
+    # Light times is a N vector of time
+    print("Light Times: ")
+    print(lightTimes[0])
+
+    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
+    fig = plt.figure(figsize=(9, 9))
+    ax  = fig.add_subplot(111)
+    ax.plot(positions[0], positions[1], positions[2])
+    plt.title('SpiceyPy Cassini Position Example from Jun 20, 2004 to Dec 1, 2005')
+    plt.show()
+    unload_all_kernels()
+
