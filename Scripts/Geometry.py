@@ -8,6 +8,8 @@ import spiceypy as spice
 import numpy as np
 import math
 from spiceypy.utils.support_types import SpiceyError
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
 def edges_around_plates(plates):
     """
@@ -54,6 +56,8 @@ def load_shape_data(file):
 
 
 def Brute_Force():
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
     ROOM = 4
     nacid = None
 
@@ -122,31 +126,53 @@ def Brute_Force():
     # frame_name = spice.frmnam(1000012)
     bounds_list = bounds2.tolist()
     bounds_list.append(number.tolist())
-    for i in range(5):
+    length = np.linspace(bounds2[1][0], bounds2[1][1], 30)
+    vertex_array = []
+
+    for i in length:
+        for j in length:
+            vertex_array.append([i, j, bounds2[0][2]])
+    # spice.vminus()
+    # spice.dskgd
+    # tup = spice.kdata(0, )
+    vertex_array = np.array(vertex_array)
+    n_rays = vertex_array.shape[0]
+    direction_arrays = []
+    for n in range(n_rays):
+        direction_arrays.append([0, 0, 1])
+    direction_arrays = np.array(direction_arrays)
+    xdata = []
+    ydata = []
+    zdata = []
+
+    for vec in vertex_array:
             #
             # Call sincpt to determine coordinates of the
             # intersection of this vector with the surface
             # of Phoebe.
             #
-        print('Vector: {:s}\n'.format(vecnam[i]))
-        for j in range(2):
-            print(' Target shape model: {:s}\n'.format(
-                method[j]))
-            try:
-                    point, trgepc, srfvec, area = find_ray_surface_intercept('PHOEBE', 140254384.185, 'IAU_PHOEBE', 'LT+S', 'CASSINI', vector, [0, 0, 1], method[j])
-                    #
-                    # Now, we have discovered a point of intersection.
-                    # Start by displaying the position vector in the
-                    # IAU_PHOEBE frame of the intersection.
-                    #
-                    print(' Position vector of surface intercept '
-                          'in the IAU_PHOEBE frame (km):')
-                    print(' X = {:16.3f}'.format(point[0]))
-                    print(' Y = {:16.3f}'.format(point[1]))
-                    print(' Z = {:16.3f}'.format(point[2]))
+        # print('Vector: {:s}\n'.format(vecnam[i]))
+        try:
+            point, trgepc, srfvec, area = find_ray_surface_intercept('PHOEBE', 140254384.185, 'IAU_PHOEBE', 'LT+S',
+                                                                         'CASSINI', vector, vec)
+            #
+            # Now, we have discovered a point of intersection.
+            # Start by displaying the position vector in the
+            # IAU_PHOEBE frame of the intersection.
+            #
+            print(' Position vector of surface intercept in the IAU_PHOEBE frame (km):')
+            print(' X = {:16.3f}'.format(point[0]))
+            print(' Y = {:16.3f}'.format(point[1]))
+            print(' Z = {:16.3f}'.format(point[2]))
+            xdata.append(point[0])
+            ydata.append(point[1])
+            zdata.append(point[2])
+        except:
+            raise
 
-            except:
-                raise
+    ax.scatter3D(xdata, ydata, zdata, c=zdata)
+    plt.show()
+
 
     if frame == 'RECTANGLE':  # will make a more robust version later on
         """dist1 = distance_formula(bounds2[0], bounds2[1])
@@ -154,24 +180,10 @@ def Brute_Force():
         area = dist1*dist2
         print(area)"""
 
-        length = np.linspace(bounds2[1][0], bounds2[1][1], 10)
-        vertex_array = []
 
-        for i in length:
-            for j in length:
-                vertex_array.append([i, j, bounds2[0][2]])
-        # spice.vminus()
-        # spice.dskgd
-        # tup = spice.kdata(0, )
-        vertex_array = np.array(vertex_array)
-        n_rays = vertex_array.shape[0]
-        direction_arrays = []
-        for n in range(n_rays):
-            direction_arrays.append([0, 0, 1])
-        direction_arrays = np.array(direction_arrays)
-        print(vertex_array)
-        print(direction_arrays)
-        print(n_rays)
+        # print(vertex_array)
+        # print(direction_arrays)
+        # print(n_rays)
 
 
 
@@ -181,6 +193,8 @@ def dskxsi():
     Will fix this hot garbage later
     :return:
     """
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
     ROOM = 4
     nacid = None
 
@@ -230,7 +244,7 @@ def dskxsi():
     method = ['Ellipsoid', 'DSK/Unprioritized']
     length = np.linspace(bounds2[1][0], bounds2[1][1], 10)
     vertex_array = []
-
+    r = 10000000000
     for i in length:
         for j in length:
             vertex_array.append([i, j, bounds2[0][2]])
@@ -240,6 +254,7 @@ def dskxsi():
     vertex_array = np.array(vertex_array)
     n_rays = vertex_array.shape[0]
     direction_arrays = []
+    print(vertex_array)
     for n in range(n_rays):
         direction_arrays.append([1, 0, 0])
     direction_arrays = np.array(direction_arrays)
@@ -271,10 +286,20 @@ def dskxsi():
     # intersection of this vector with the surface
     # of Phoebe.
     #
-
+    tup = None
     try:
         tup = spice.dskxv(False, 'PHOEBE', [], 140254384.185, 'IAU_PHOEBE', vertex_array, direction_arrays)
         print(tup)
+        xdata = []
+        ydata = []
+        zdata = []
+
+        for vec in tup[0]:
+            xdata.append(vec[0])
+            ydata.append(vec[1])
+            zdata.append(vec[2])
+        ax.scatter3D(xdata, ydata, zdata)
+        plt.show()
         # Now, we have discovered a point of intersection.
         # Start by displaying the position vector in the
         # IAU_PHOEBE frame of the intersection.
@@ -293,6 +318,6 @@ def distance_formula(a, b):
 
 
 if __name__ == '__main__':
-    # Brute_Force()
-    dskxsi()
+    Brute_Force()
+    # dskxsi()
 
