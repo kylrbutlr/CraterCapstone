@@ -224,6 +224,26 @@ def get_instrument_fov(instrument_id: int, max_return: int = 10):
 
     return spice.getfov(instrument_id, max_return)
 
+def get_shape_information(shapeFilePath: str):
+    """
+    Loads the shape file (dsk) and returns the vertices of the shape and
+    the vertices associated to each plate
+
+    :param shapeFilePath: relative path to the dsk files
+    :return:
+            Array of the coordinates of the vertices of the shape,
+            Array of the indices of vertices that make up a plate
+    """
+
+    id = spice.dasopr(shapeFilePath)
+    handle = spice.dlabfs(id)
+
+    num_vertices, num_plates = spice.dskz02(id, handle)
+
+    vertices_array = spice.dskv02(id, spice.dlabfs(id), 1, num_vertices)
+    plate_array = spice.dskp02(id, handle, 1, num_plates)
+
+    return vertices_array, plate_array
 
 def print_ver():
     """
@@ -236,7 +256,7 @@ def print_ver():
 # Testing garbage out
 if __name__ == '__main__':
     print_ver()
-    load_kernel('kernels/mk/ROS_OPS.TM')
+    load_kernel('../kernels/mk/ROS_OPS.TM')
     print('break')
     print(spice.ktotal(KernelType.SPK.value))
     print(convert_utc_to_et('2018-05-05'))
@@ -273,15 +293,14 @@ if __name__ == '__main__':
     print("Light Times: ")
     print(lightTimes[0])
 
-    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
-    fig = plt.figure(figsize=(9, 9))
-    ax  = fig.add_subplot(111)
-    ax.plot(positions[0], positions[1], positions[2])
-    plt.title('Test')
-    plt.show()
+    positions = np.asarray(positions).T # positions is a list, make it an np array for easier indexing
+
+    print("Vertices of 2867 Steins")
+    print(get_shape_information('../kernels/dsk/ROS_ST_K020_OSPCLAM_N_V1.bds'))
 
     unload_all_kernels()
 
+    """
     # Cassini Example from https://media.readthedocs.org/pdf/spiceypy/master/spiceypy.pdf
     load_kernel('kernels/naif0009.tls')
     load_kernel('kernels/cas00084.tsc')
@@ -326,4 +345,5 @@ if __name__ == '__main__':
     plt.title('SpiceyPy Cassini Position Example from Jun 20, 2004 to Dec 1, 2005')
     plt.show()
     unload_all_kernels()
+    """
 
