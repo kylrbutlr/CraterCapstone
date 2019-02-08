@@ -61,26 +61,29 @@ def Brute_Force():
     ROOM = 4
     nacid = None
 
-    # sp.load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
-    load_kernel('../kernels/kernels/naif0009.tls')
-    load_kernel('../kernels/kernels/cas00084.tsc')
-    load_kernel('../kernels/kernels/cpck05Mar2004.tpc')
-    load_kernel('../kernels/kernels/020514_SE_SAT105.bsp')
-    load_kernel('../kernels/kernels/981005_PLTEPH-DE405S.bsp')
-    load_kernel('../kernels/kernels/030201AP_SK_SM546_T45.bsp')
-    load_kernel('../kernels/kernels/04135_04171pc_psiv2.bc')
-    load_kernel('../kernels/kernels/cas_v37.tf')
-    load_kernel('../kernels/kernels/cas_iss_v09.ti')
-    load_kernel('../kernels/kernels/phoebe_64q.bds')
-    utc = ['2004-06-20', '2005-12-01']
+    load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
+    # load_kernel('../kernels/kernels/naif0009.tls')
+    # load_kernel('../kernels/kernels/cas00084.tsc')
+    # load_kernel('../kernels/kernels/cpck05Mar2004.tpc')
+    # load_kernel('../kernels/kernels/020514_SE_SAT105.bsp')
+    # load_kernel('../kernels/kernels/981005_PLTEPH-DE405S.bsp')
+    # load_kernel('../kernels/kernels/030201AP_SK_SM546_T45.bsp')
+    # load_kernel('../kernels/kernels/04135_04171pc_psiv2.bc')
+    # load_kernel('../kernels/kernels/cas_v37.tf')
+    # load_kernel('../kernels/kernels/cas_iss_v09.ti')
+    # load_kernel('../kernels/kernels/phoebe_64q.bds')
+    load_kernel('../kernels/kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
+    utc = ['2014-08-06', '2016-12-31']
+
+    # get et values one and two, we could vectorize str2et
     etOne = convert_utc_to_et(utc[0])
     etTwo = convert_utc_to_et(utc[1])
     # kinfo = spice.kinfo('../kernels/kernels/mk/ROS_OPS.TM')
 
     # print(spice.namfrm(frame_name))
-    # tup = find_ray_surface_intercept('Rosetta', 595166468.1826606, '67P/C-G_Ck', 'NONE', vector, 'J2000', )
+    # tup = find_ray_surface_intercept('Rosetta', 595166468.1826606, '67P/C-G_FIXED', 'NONE', vector, 'J2000', )
     try:
-        nacid = spice.bodn2c('CASSINI_ISS_NAC')
+        nacid = spice.bodn2c('Rosetta')
     except SpiceyError:
         # Stop the program if the code was not found.
         #
@@ -93,7 +96,7 @@ def Brute_Force():
               'Boundary Corner 3',
               'Boundary Corner 4',
               'Cassini NAC Boresight']
-    frame, vector, number, bounds, bounds2 = find_fov(nacid, ROOM)
+    frame, vector, number, bounds, bounds2 = find_fov(-226807)
     #
     # Set values of "method" string that specify use of
     # ellipsoidal and DSK (topographic) shape models.
@@ -106,7 +109,7 @@ def Brute_Force():
     #
     method = ['Ellipsoid', 'DSK/Unprioritized']
     try:
-        phoeid = spice.bodn2c('PHOEBE')
+        phoeid = spice.bodn2c('67P/C-G')
     except:
         #
         # The ID code for PHOEBE is built-in to the library.
@@ -126,12 +129,12 @@ def Brute_Force():
     # frame_name = spice.frmnam(1000012)
     bounds_list = bounds2.tolist()
     bounds_list.append(number.tolist())
-    length = np.linspace(bounds2[1][0], bounds2[1][1], 30)
+    length = np.linspace(bounds2[1][0], bounds2[1][1], 150)
     vertex_array = []
 
     for i in length:
         for j in length:
-            vertex_array.append([i, j, bounds2[0][2]])
+            vertex_array.append(spice.latrec(1000000000.0, i, j))
     # spice.vminus()
     # spice.dskgd
     # tup = spice.kdata(0, )
@@ -153,8 +156,8 @@ def Brute_Force():
             #
         # print('Vector: {:s}\n'.format(vecnam[i]))
         try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept('PHOEBE', 140254384.185, 'IAU_PHOEBE', 'LT+S',
-                                                                         'CASSINI', vector, vec)
+            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etTwo, '67P/C-G_CK', 'NONE',
+                                                                         'Rosetta', vector, vec)
             #
             # Now, we have discovered a point of intersection.
             # Start by displaying the position vector in the

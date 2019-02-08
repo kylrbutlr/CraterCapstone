@@ -10,3 +10,6 @@ venv/
 *.TLS
 *.TM
 *.bds
+kernels/kernels/dsk/aareadme.txt
+*.OBJ
+*.PNG
