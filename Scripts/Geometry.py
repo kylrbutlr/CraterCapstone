@@ -61,7 +61,7 @@ def Brute_Force():
     ROOM = 4
     nacid = None
 
-    load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
+    load_kernel('../kernels/mk/ROS_OPS.TM')
     # load_kernel('../kernels/kernels/naif0009.tls')
     # load_kernel('../kernels/kernels/cas00084.tsc')
     # load_kernel('../kernels/kernels/cpck05Mar2004.tpc')
@@ -72,8 +72,8 @@ def Brute_Force():
     # load_kernel('../kernels/kernels/cas_v37.tf')
     # load_kernel('../kernels/kernels/cas_iss_v09.ti')
     # load_kernel('../kernels/kernels/phoebe_64q.bds')
-    load_kernel('../kernels/kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
-    utc = ['2014-08-06', '2016-12-31']
+    load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
+    utc = ['2016-12-31', '2016-12-31']
 
     # get et values one and two, we could vectorize str2et
     etOne = convert_utc_to_et(utc[0])
@@ -134,7 +134,7 @@ def Brute_Force():
 
     for i in length:
         for j in length:
-            vertex_array.append(spice.latrec(1000000000.0, i, j))
+            vertex_array.append(spice.latrec(10000000000, i, j))
     # spice.vminus()
     # spice.dskgd
     # tup = spice.kdata(0, )
@@ -156,14 +156,13 @@ def Brute_Force():
             #
         # print('Vector: {:s}\n'.format(vecnam[i]))
         try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etTwo, '67P/C-G_CK', 'NONE',
-                                                                         'Rosetta', vector, vec)
+            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etOne, '67P/C-G_CK', 'NONE', 'Rosetta', vector, vec)
             #
             # Now, we have discovered a point of intersection.
             # Start by displaying the position vector in the
             # IAU_PHOEBE frame of the intersection.
             #
-            print(' Position vector of surface intercept in the IAU_PHOEBE frame (km):')
+            print(' Position vector of surface intercept in the 67P/C-G_CK frame (km):')
             print(' X = {:16.3f}'.format(point[0]))
             print(' Y = {:16.3f}'.format(point[1]))
             print(' Z = {:16.3f}'.format(point[2]))
@@ -174,6 +173,7 @@ def Brute_Force():
             raise
 
     ax.scatter3D(xdata, ydata, zdata, c=zdata)
+    # ax.scatter3D(vertex_array[:][0], vertex_array[:][1], vertex_array[:][2])
     plt.show()
 
 
@@ -202,16 +202,16 @@ def dskxsi():
     nacid = None
 
     # sp.load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
-    load_kernel('../kernels/kernels/naif0009.tls')
-    load_kernel('../kernels/kernels/cas00084.tsc')
-    load_kernel('../kernels/kernels/cpck05Mar2004.tpc')
-    load_kernel('../kernels/kernels/020514_SE_SAT105.bsp')
-    load_kernel('../kernels/kernels/981005_PLTEPH-DE405S.bsp')
-    load_kernel('../kernels/kernels/030201AP_SK_SM546_T45.bsp')
-    load_kernel('../kernels/kernels/04135_04171pc_psiv2.bc')
-    load_kernel('../kernels/kernels/cas_v37.tf')
-    load_kernel('../kernels/kernels/cas_iss_v09.ti')
-    load_kernel('../kernels/kernels/phoebe_64q.bds')
+    load_kernel('../kernels/cassini/naif0009.tls')
+    load_kernel('../kernels/cassini/cas00084.tsc')
+    load_kernel('../kernels/cassini/cpck05Mar2004.tpc')
+    load_kernel('../kernels/cassini/020514_SE_SAT105.bsp')
+    load_kernel('../kernels/cassini/981005_PLTEPH-DE405S.bsp')
+    load_kernel('../kernels/cassini/030201AP_SK_SM546_T45.bsp')
+    load_kernel('../kernels/cassini/04135_04171pc_psiv2.bc')
+    load_kernel('../kernels/cassini/cas_v37.tf')
+    load_kernel('../kernels/cassini/cas_iss_v09.ti')
+    load_kernel('../kernels/cassini/phoebe_64q.bds')
     utc = ['2004-06-20', '2005-12-01']
     etOne = convert_utc_to_et(utc[0])
     etTwo = convert_utc_to_et(utc[1])
