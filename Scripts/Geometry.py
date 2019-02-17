@@ -100,26 +100,15 @@ def get_id_code(name):
     return nacid
 
 
-def get_view_directions_vector(nacid):
-    """
-    Returns view directions of body
-    :param nacid: body id
-    :return: view directions vector
-    """
-    frame, vector, number, bounds, bounds2 = find_fov(nacid)
-    return vector
-
-
-def find_length_for_vertex_array(nacid):
+def find_length_for_vertex_array(fov):
     """
     Returns length for a vertex array
     :param nacid: body id
     :return: length
     """
-    frame, vector, number, bounds, bounds2 = find_fov(nacid)
-    bounds_list = bounds2.tolist()
-    bounds_list.append(number.tolist())
-    length = np.linspace(bounds2[1][0], bounds2[1][1], 150)
+    bounds_list = get_bounds2_fov(fov).tolist()
+    bounds_list.append(get_number_fov(fov).tolist())
+    length = np.linspace(get_bounds2_fov(fov)[1][0], get_bounds2_fov(fov)[1][1], 150)
     return length
 
 
@@ -194,23 +183,23 @@ def Brute_Force(body, nacid, utc):
     # Initial check for kernel id code
     get_id_code(body)
 
-    # get view directions vector
-    vector = get_view_directions_vector(nacid)
+    # find fov
+    fov = find_fov(nacid)
 
     # find length for vector array
-    length = find_length_for_vertex_array(nacid)
+    length = find_length_for_vertex_array(fov)
 
     # fill in vertex array
     vertex_array = conv_lat_to_rec_in_vertex_array(length)
 
     # get position vectors for ray surface intercept
-    position_vectors = get_position_vectors(vertex_array, etOne, body, vector)
+    position_vectors = get_position_vectors(vertex_array, etOne, body, get_views_direction_vector_fov(fov))
 
     # plot position vectors
     ax.scatter3D(position_vectors[0], position_vectors[1], position_vectors[2], c=position_vectors[2])
     plt.show()
 
-    if frame == 'RECTANGLE':  # will make a more robust version later on
+    if get_frame_fov(fov) == 'RECTANGLE':  # will make a more robust version later on
         """dist1 = distance_formula(bounds2[0], bounds2[1])
         dist2 = distance_formula(bounds2[2], bounds2[3])
         area = dist1*dist2
