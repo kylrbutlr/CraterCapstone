@@ -55,113 +55,122 @@ def load_shape_data(file):
     pass
 
 
-def Brute_Force():
-    fig = plt.figure()
-    ax = plt.axes(projection='3d')
-    ROOM = 4
-    nacid = None
-
+def init_kernels():
+    """
+    Load all the kernels
+    :return: void
+    """
     load_kernel('../kernels/mk/ROS_OPS.TM')
-    # load_kernel('../kernels/kernels/naif0009.tls')
-    # load_kernel('../kernels/kernels/cas00084.tsc')
-    # load_kernel('../kernels/kernels/cpck05Mar2004.tpc')
-    # load_kernel('../kernels/kernels/020514_SE_SAT105.bsp')
-    # load_kernel('../kernels/kernels/981005_PLTEPH-DE405S.bsp')
-    # load_kernel('../kernels/kernels/030201AP_SK_SM546_T45.bsp')
-    # load_kernel('../kernels/kernels/04135_04171pc_psiv2.bc')
-    # load_kernel('../kernels/kernels/cas_v37.tf')
-    # load_kernel('../kernels/kernels/cas_iss_v09.ti')
-    # load_kernel('../kernels/kernels/phoebe_64q.bds')
+    load_kernel('../kernels/cassini/naif0009.tls')
+    load_kernel('../kernels/cassini/cas00084.tsc')
+    load_kernel('../kernels/cassini/cpck05Mar2004.tpc')
+    load_kernel('../kernels/cassini/020514_SE_SAT105.bsp')
+    load_kernel('../kernels/cassini/981005_PLTEPH-DE405S.bsp')
+    load_kernel('../kernels/cassini/030201AP_SK_SM546_T45.bsp')
+    load_kernel('../kernels/cassini/04135_04171pc_psiv2.bc')
+    load_kernel('../kernels/cassini/cas_v37.tf')
+    load_kernel('../kernels/cassini/cas_iss_v09.ti')
+    load_kernel('../kernels/cassini/phoebe_64q.bds')
     load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
-    utc = ['2016-12-31', '2016-12-31']
 
-    # get et values one and two, we could vectorize str2et
+
+def get_et_values(utc):
+    """
+    Get et values one and two, so we can vectorize str2et
+    :param utc: array of two utc dates
+    :return: etOne and etTwo
+    """
     etOne = convert_utc_to_et(utc[0])
     etTwo = convert_utc_to_et(utc[1])
-    # kinfo = spice.kinfo('../kernels/kernels/mk/ROS_OPS.TM')
+    return [etOne, etTwo]
 
-    # print(spice.namfrm(frame_name))
-    # tup = find_ray_surface_intercept('Rosetta', 595166468.1826606, '67P/C-G_FIXED', 'NONE', vector, 'J2000', )
+
+def get_id_code(name):
+    """
+    Initial check of id code of kernel, so program can stop if not found
+    :param name: name of kernel, ex 'Rosetta'
+    :return: id code if found or SpiceyError if not found
+    """
     try:
-        nacid = spice.bodn2c('Rosetta')
+        nacid = spice.bodn2c(name)
     except SpiceyError:
         # Stop the program if the code was not found.
-        #
-        print('Unable to locate the ID code for '
-              'CASSINI_ISS_NAC')
+        print('Unable to locate the ID code for ' + name)
         raise
+    return nacid
 
-    vecnam = ['Boundary Corner 1',
-              'Boundary Corner 2',
-              'Boundary Corner 3',
-              'Boundary Corner 4',
-              'Cassini NAC Boresight']
-    frame, vector, number, bounds, bounds2 = find_fov(-226807)
-    #
-    # Set values of "method" string that specify use of
-    # ellipsoidal and DSK (topographic) shape models.
-    #
-    # In this case, we can use the same methods for calls to both
-    # spiceypy.sincpt and spiceypy.ilumin. Note that some SPICE
-    # routines require different "method" inputs from those
-    # shown here. See the API documentation of each routine
-    # for details.
-    #
-    method = ['Ellipsoid', 'DSK/Unprioritized']
-    try:
-        phoeid = spice.bodn2c('67P/C-G')
-    except:
-        #
-        # The ID code for PHOEBE is built-in to the library.
-        # However, it is good programming practice to get
-        # in the habit of handling exceptions that may
-        # be thrown when a quantity is not found.
-        #
-        print('Unable to locate the body ID code '
-              'for Phoebe.')
-        raise
-        #
-        # Now perform the same set of calculations for each
-        # vector listed in the BOUNDS array. Use both
-        # ellipsoidal and detailed (DSK) shape models.
-        #
 
-    # frame_name = spice.frmnam(1000012)
+def get_view_directions_vector(nacid):
+    """
+    Returns view directions of body
+    :param nacid: body id
+    :return: view directions vector
+    """
+    frame, vector, number, bounds, bounds2 = find_fov(nacid)
+    return vector
+
+
+def find_length_for_vertex_array(nacid):
+    """
+    Returns length for a vertex array
+    :param nacid: body id
+    :return: length
+    """
+    frame, vector, number, bounds, bounds2 = find_fov(nacid)
     bounds_list = bounds2.tolist()
     bounds_list.append(number.tolist())
     length = np.linspace(bounds2[1][0], bounds2[1][1], 150)
-    vertex_array = []
+    return length
 
+
+def conv_lat_to_rec_in_vertex_array(length):
+    """
+    converts latitude coordinates to rectangular in an array of size length
+    :param length: size of array
+    :return: vertex array
+    """
+    vertex_array = []
     for i in length:
         for j in length:
             vertex_array.append(spice.latrec(10000000000, i, j))
-    # spice.vminus()
-    # spice.dskgd
-    # tup = spice.kdata(0, )
     vertex_array = np.array(vertex_array)
+    return vertex_array
+
+
+def get_direction_arrays(vertex_array):
+    """
+    Given a array of coordinates, find the directions of each
+    :param vertex_array: array of rectangular coordinates
+    :return: direction_arrays: array of directional arrays
+    """
     n_rays = vertex_array.shape[0]
     direction_arrays = []
     for n in range(n_rays):
         direction_arrays.append([0, 0, 1])
     direction_arrays = np.array(direction_arrays)
+    return direction_arrays
+
+
+def get_position_vectors(vertex_array, etOne, body, vector):
+    """
+    Function gets x,y,z position vectors
+    :param vertex_array: array of rectangular coordinates
+    :param etOne: et value 1
+    :param body: body name, ex. 'Rosetta'
+    :param vector: views_directions vector
+    :return: x,y,z data arrays in an array
+    """
     xdata = []
     ydata = []
     zdata = []
 
     for vec in vertex_array:
-            #
-            # Call sincpt to determine coordinates of the
-            # intersection of this vector with the surface
-            # of Phoebe.
-            #
-        # print('Vector: {:s}\n'.format(vecnam[i]))
+        # Call sincpt to determine coordinates of the intersection of this vector with the surface
         try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etOne, '67P/C-G_CK', 'NONE', 'Rosetta', vector, vec)
-            #
+            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etOne, '67P/C-G_CK', 'NONE', body,
+                                                                     vector, vec)
             # Now, we have discovered a point of intersection.
-            # Start by displaying the position vector in the
-            # IAU_PHOEBE frame of the intersection.
-            #
+            #TODO do these need to printed?
             print(' Position vector of surface intercept in the 67P/C-G_CK frame (km):')
             print(' X = {:16.3f}'.format(point[0]))
             print(' Y = {:16.3f}'.format(point[1]))
@@ -171,11 +180,35 @@ def Brute_Force():
             zdata.append(point[2])
         except:
             raise
+    return [xdata, ydata, zdata]
 
-    ax.scatter3D(xdata, ydata, zdata, c=zdata)
-    # ax.scatter3D(vertex_array[:][0], vertex_array[:][1], vertex_array[:][2])
+
+def Brute_Force(body, nacid, utc):
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')
+
+    # get et values
+    etVals = get_et_values(utc)
+    etOne = etVals[0]
+
+    # Initial check for kernel id code
+    get_id_code(body)
+
+    # get view directions vector
+    vector = get_view_directions_vector(nacid)
+
+    # find length for vector array
+    length = find_length_for_vertex_array(nacid)
+
+    # fill in vertex array
+    vertex_array = conv_lat_to_rec_in_vertex_array(length)
+
+    # get position vectors for ray surface intercept
+    position_vectors = get_position_vectors(vertex_array, etOne, body, vector)
+
+    # plot position vectors
+    ax.scatter3D(position_vectors[0], position_vectors[1], position_vectors[2], c=position_vectors[2])
     plt.show()
-
 
     if frame == 'RECTANGLE':  # will make a more robust version later on
         """dist1 = distance_formula(bounds2[0], bounds2[1])
@@ -201,38 +234,10 @@ def dskxsi():
     ROOM = 4
     nacid = None
 
-    # sp.load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
-    load_kernel('../kernels/cassini/naif0009.tls')
-    load_kernel('../kernels/cassini/cas00084.tsc')
-    load_kernel('../kernels/cassini/cpck05Mar2004.tpc')
-    load_kernel('../kernels/cassini/020514_SE_SAT105.bsp')
-    load_kernel('../kernels/cassini/981005_PLTEPH-DE405S.bsp')
-    load_kernel('../kernels/cassini/030201AP_SK_SM546_T45.bsp')
-    load_kernel('../kernels/cassini/04135_04171pc_psiv2.bc')
-    load_kernel('../kernels/cassini/cas_v37.tf')
-    load_kernel('../kernels/cassini/cas_iss_v09.ti')
-    load_kernel('../kernels/cassini/phoebe_64q.bds')
-    utc = ['2004-06-20', '2005-12-01']
-    etOne = convert_utc_to_et(utc[0])
-    etTwo = convert_utc_to_et(utc[1])
-    # kinfo = spice.kinfo('../kernels/kernels/mk/ROS_OPS.TM')
+    get_et_values(['2004-06-20', '2005-12-01'])
 
-    # print(spice.namfrm(frame_name))
-    # tup = find_ray_surface_intercept('Rosetta', 595166468.1826606, '67P/C-G_Ck', 'NONE', vector, 'J2000', )
-    try:
-        nacid = spice.bodn2c('CASSINI_ISS_NAC')
-    except SpiceyError:
-        # Stop the program if the code was not found.
-        #
-        print('Unable to locate the ID code for '
-              'CASSINI_ISS_NAC')
-        raise
+    nacid = get_id_code('CASSINI_ISS_NAC')
 
-    vecnam = ['Boundary Corner 1',
-              'Boundary Corner 2',
-              'Boundary Corner 3',
-              'Boundary Corner 4',
-              'Cassini NAC Boresight']
     frame, vector, number, bounds, bounds2 = find_fov(nacid, ROOM)
     #
     # Set values of "method" string that specify use of
@@ -263,25 +268,7 @@ def dskxsi():
     direction_arrays = np.array(direction_arrays)
     vertex_array = vertex_array.tolist()
     direction_arrays = direction_arrays.tolist()
-    try:
-        phoeid = spice.bodn2c('PHOEBE')
-    except:
-        #
-        # The ID code for PHOEBE is built-in to the library.
-        # However, it is good programming practice to get
-        # in the habit of handling exceptions that may
-        # be thrown when a quantity is not found.
-        #
-        print('Unable to locate the body ID code '
-              'for Phoebe.')
-        raise
-        #
-        # Now perform the same set of calculations for each
-        # vector listed in the BOUNDS array. Use both
-        # ellipsoidal and detailed (DSK) shape models.
-        #
 
-    # frame_name = spice.frmnam(1000012)
     bounds_list = bounds2.tolist()
     bounds_list.append(number.tolist())
     #
@@ -318,9 +305,14 @@ def distance_formula(a, b):
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
 # Testing This stuff
-
+ROSETTA = 'Rosetta'
+ROSETTA_UTC = ['2016-12-31', '2016-12-31']
+ROSETTA_NACID = -226807
 
 if __name__ == '__main__':
-    Brute_Force()
-    # dskxsi()
+
+    init_kernels()
+
+    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
+    #dskxsi()
 
