@@ -198,8 +198,28 @@ def find_fov(instrument_id: int, max_return: int = 10):
              The number of 'BOUNDS' returned,
              'BOUNDS' that points to the corners of the instrument
     """
+    frame, vector, number, bounds, bounds2 = spice.getfov(instrument_id, max_return)
+    return [frame, vector, number, bounds, bounds2]
 
-    return spice.getfov(instrument_id, max_return)
+
+def get_frame_fov(fov):
+    return fov[0]
+
+
+def get_views_direction_vector_fov(fov):
+    return fov[1]
+
+
+def get_number_fov(fov):
+    return fov[2]
+
+
+def get_bounds_fov(fov):
+    return fov[3]
+
+
+def get_bounds2_fov(fov):
+    return fov[4]
 
 
 def print_ver():
