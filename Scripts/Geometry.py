@@ -129,7 +129,7 @@ def Brute_Force():
     # frame_name = spice.frmnam(1000012)
     bounds_list = bounds2.tolist()
     bounds_list.append(number.tolist())
-    length = np.linspace(bounds2[1][0], bounds2[1][1], 150)
+    length = np.linspace(bounds2[1][0], bounds2[1][1], 50)
     vertex_array = []
 
     for i in length:
@@ -157,7 +157,7 @@ def Brute_Force():
         # print('Vector: {:s}\n'.format(vecnam[i]))
         try:
             point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etTwo, '67P/C-G_CK', 'NONE',
-                                                                         'Rosetta', vector, vec)
+                                                                        'Rosetta', vector, vec)
             #
             # Now, we have discovered a point of intersection.
             # Start by displaying the position vector in the
