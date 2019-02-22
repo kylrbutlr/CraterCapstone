@@ -134,7 +134,8 @@ def convert_utc_to_et(date: str):
 
     return spice.utc2et(date)
 
-def get_et_One(utc):
+
+def get_et_one(utc):
     """
     Get et date of first utc date
     :param utc: array of two utc dates
@@ -142,13 +143,15 @@ def get_et_One(utc):
     """
     return convert_utc_to_et(utc[0])
 
-def get_et_Two(utc):
+
+def get_et_two(utc):
     """
     Get et date of second utc date
     :param utc: array of two utc dates
     :return: et date of second utc date
     """
     return convert_utc_to_et(utc[0])
+
 
 ###############
 # SPK Kernels #
@@ -255,27 +258,27 @@ def find_fov(instrument_id: int, max_return: int = 10):
              The number of 'BOUNDS' returned,
              'BOUNDS' that points to the corners of the instrument
     """
-    frame, vector, number, bounds, bounds2 = spice.getfov(instrument_id, max_return)
-    return [frame, vector, number, bounds, bounds2]
+    shape, reference_frame, views_direction_vector, number_of_bounds, bounds = spice.getfov(instrument_id, max_return)
+    return [shape, reference_frame, views_direction_vector, number_of_bounds, bounds]
 
 
-def get_frame_fov(fov):
+def get_shape_fov(fov):
     return fov[0]
 
 
-def get_views_direction_vector_fov(fov):
+def get_reference_frame_fov(fov):
     return fov[1]
 
 
-def get_number_fov(fov):
+def get_views_direction_vector_fov(fov):
     return fov[2]
 
 
-def get_bounds_fov(fov):
+def get_number_of_bounds_fov(fov):
     return fov[3]
 
 
-def get_bounds2_fov(fov):
+def get_bounds_fov(fov):
     return fov[4]
 
 

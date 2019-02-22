@@ -78,9 +78,9 @@ def find_length_for_vertex_array(fov):
     :param nacid: body id
     :return: length
     """
-    bounds_list = get_bounds2_fov(fov).tolist()
-    bounds_list.append(get_number_fov(fov).tolist())
-    length = np.linspace(get_bounds2_fov(fov)[1][0], get_bounds2_fov(fov)[1][1], 150)
+    bounds_list = get_bounds_fov(fov).tolist()
+    bounds_list.append(get_views_direction_vector_fov(fov).tolist())
+    length = np.linspace(get_bounds_fov(fov)[1][0], get_bounds_fov(fov)[1][1], 150)
     return length
 
 
@@ -112,23 +112,26 @@ def get_direction_arrays(vertex_array):
     return direction_arrays
 
 
-def get_position_vectors(vertex_array, etOne, body, vector):
+def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc):
     """
     Function gets x,y,z position vectors
-    :param vertex_array: array of rectangular coordinates
-    :param etOne: et value 1
-    :param body: body name, ex. 'Rosetta'
-    :param vector: views_directions vector
+    :param body: name of asteroid body
+    :param nacid: id code of body
+    :param utc: array with 2 dates
     :return: x,y,z data arrays in an array
     """
     xdata = []
     ydata = []
     zdata = []
+    etOne = get_et_one(utc)
+    fov = find_fov(nacid)
+    reference_frame = get_reference_frame_fov(fov)
+    vertex_array = create_vertex_array(fov)
 
     for vec in vertex_array:
         try:
             point, trgepc, srfvec, area = find_ray_surface_intercept_at_epoch('67P/C-G', etOne, '67P/C-G_CK', 'NONE', body,
-                                                                              vector, vec)
+                                                                              reference_frame, vec)
             #TODO do these need to printed?
             print(' Position vector of surface intercept in the 67P/C-G_CK frame (km):')
             print(' X = {:16.3f}'.format(point[0]))
@@ -139,46 +142,47 @@ def get_position_vectors(vertex_array, etOne, body, vector):
             zdata.append(point[2])
         except:
             raise
-    return [xdata, ydata, zdata]
 
-
-def Brute_Force(body, nacid, utc):
-    fig = plt.figure()
-    ax = plt.axes(projection='3d')
-
-    # get et values
-    etOne = get_et_One(utc)
-
-    # Initial check for kernel id code, so program can stop if not found
-    get_id_code(body)
-
-    # find fov
-    fov = find_fov(nacid)
-
-    # find length for vector array
-    length = find_length_for_vertex_array(fov)
-
-    # fill in vertex array
-    vertex_array = conv_lat_to_rec_in_vertex_array(length)
-
-    # get position vectors for ray surface intercept
-    position_vectors = get_position_vectors(vertex_array, etOne, body, get_views_direction_vector_fov(fov))
-
-    # plot position vectors
-    ax.scatter3D(position_vectors[0], position_vectors[1], position_vectors[2], c=position_vectors[2])
-    plt.show()
-
-    if get_frame_fov(fov) == 'RECTANGLE':  # will make a more robust version later on
+    if get_shape_fov(fov) == 'RECTANGLE':  # will make a more robust version later on
         """dist1 = distance_formula(bounds2[0], bounds2[1])
         dist2 = distance_formula(bounds2[2], bounds2[3])
         area = dist1*dist2
         print(area)"""
-
-
         # print(vertex_array)
         # print(direction_arrays)
         # print(n_rays)
 
+    return [xdata, ydata, zdata]
+
+
+def create_vertex_array(fov):
+    """
+    Create an array for the coordinates of the fov
+    :param fov: field of view
+    :return: array of rectangular coordinates
+    """
+    length = find_length_for_vertex_array(fov)
+    return conv_lat_to_rec_in_vertex_array(length)
+
+
+def plot_position_vectors(position_vectors):
+    """
+    Plots the position vectors of the ray surface intercepts
+    :param position_vectors: position vectors
+    :return: figure plot
+    """
+    plt.figure()
+    ax = plt.axes(projection='3d')
+    ax.scatter3D(position_vectors[0], position_vectors[1], position_vectors[2], c=position_vectors[2])
+    plt.show()
+
+
+def Brute_Force(body, nacid, utc):
+    # Initial check for kernel id code, so program can stop if not found
+    get_id_code(body)
+
+    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc)
+    plot_position_vectors(position_vectors)
 
 
 def dskxsi():
