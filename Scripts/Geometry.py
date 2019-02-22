@@ -72,16 +72,14 @@ def init_kernels():
     load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
 
 
-def find_length_for_vertex_array(fov):
+def find_length_for_vertex_array(fov, num_of_samples):
     """
     Returns length for a vertex array
-    :param nacid: body id
+    :param fov: field of view
+    :param num_of_samples: number of samples for linspace
     :return: length
     """
-    bounds_list = get_bounds_fov(fov).tolist()
-    bounds_list.append(get_views_direction_vector_fov(fov).tolist())
-    length = np.linspace(get_bounds_fov(fov)[1][0], get_bounds_fov(fov)[1][1], 150)
-    return length
+    return np.linspace(get_bounds_fov(fov)[1][0], get_bounds_fov(fov)[1][1], num_of_samples)
 
 
 def conv_lat_to_rec_in_vertex_array(length):
@@ -106,18 +104,20 @@ def get_direction_arrays(vertex_array):
     """
     n_rays = vertex_array.shape[0]
     direction_arrays = []
+    print(vertex_array)
     for n in range(n_rays):
-        direction_arrays.append([0, 0, 1])
+        direction_arrays.append([1, 0, 0])
     direction_arrays = np.array(direction_arrays)
     return direction_arrays
 
 
-def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc):
+def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples):
     """
     Function gets x,y,z position vectors
     :param body: name of asteroid body
     :param nacid: id code of body
     :param utc: array with 2 dates
+    :param num_of_samples: number of samples for linspace vertex array
     :return: x,y,z data arrays in an array
     """
     xdata = []
@@ -126,7 +126,7 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc):
     etOne = get_et_one(utc)
     fov = find_fov(nacid)
     reference_frame = get_reference_frame_fov(fov)
-    vertex_array = create_vertex_array(fov)
+    vertex_array = create_vertex_array(fov, num_of_samples, REC)
 
     for vec in vertex_array:
         try:
@@ -155,14 +155,24 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc):
     return [xdata, ydata, zdata]
 
 
-def create_vertex_array(fov):
+def create_vertex_array(fov, num_of_samples, rec=None):
     """
     Create an array for the coordinates of the fov
     :param fov: field of view
+    :param num_of_samples: number of samples for linspace
+    :param rec: determine whether or not to convert lat to rec or just append bounds to vertex array
     :return: array of rectangular coordinates
     """
-    length = find_length_for_vertex_array(fov)
-    return conv_lat_to_rec_in_vertex_array(length)
+    length = find_length_for_vertex_array(fov, num_of_samples)
+    if rec == REC:
+        vertex_array = conv_lat_to_rec_in_vertex_array(length)
+    else:
+        vertex_array = []
+        for i in length:
+            for j in length:
+                vertex_array.append([i, j, get_bounds_fov(fov)[0][2]])
+        vertex_array = np.array(vertex_array)
+    return vertex_array
 
 
 def plot_position_vectors(position_vectors):
@@ -177,65 +187,32 @@ def plot_position_vectors(position_vectors):
     plt.show()
 
 
-def Brute_Force(body, nacid, utc):
+def Brute_Force(body, nacid, utc, num_of_samples):
     # Initial check for kernel id code, so program can stop if not found
     get_id_code(body)
 
-    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc)
+    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples)
     plot_position_vectors(position_vectors)
 
 
-def dskxsi():
+def dskxsi(body):
     """
     @Author: Kyler
     Will fix this hot garbage later
     :return:
     """
-    fig = plt.figure()
+    plt.figure()
     ax = plt.axes(projection='3d')
     ROOM = 4
-    nacid = None
 
-    nacid = get_id_code('CASSINI_ISS_NAC')
+    nacid = get_id_code(body)
 
-    frame, vector, number, bounds, bounds2 = find_fov(nacid, ROOM)
-    #
-    # Set values of "method" string that specify use of
-    # ellipsoidal and DSK (topographic) shape models.
-    #
-    # In this case, we can use the same methods for calls to both
-    # spiceypy.sincpt and spiceypy.ilumin. Note that some SPICE
-    # routines require different "method" inputs from those
-    # shown here. See the API documentation of each routine
-    # for details.
-    #
-    method = ['Ellipsoid', 'DSK/Unprioritized']
-    length = np.linspace(bounds2[1][0], bounds2[1][1], 10)
-    vertex_array = []
-    r = 10000000000
-    for i in length:
-        for j in length:
-            vertex_array.append([i, j, bounds2[0][2]])
-    # spice.vminus()
-    # spice.dskgd
-    # tup = spice.kdata(0, )
-    vertex_array = np.array(vertex_array)
-    n_rays = vertex_array.shape[0]
-    direction_arrays = []
-    print(vertex_array)
-    for n in range(n_rays):
-        direction_arrays.append([1, 0, 0])
-    direction_arrays = np.array(direction_arrays)
+    fov = find_fov(nacid, ROOM)
+    vertex_array = create_vertex_array(fov, 10)
+    direction_arrays = get_direction_arrays()
     vertex_array = vertex_array.tolist()
     direction_arrays = direction_arrays.tolist()
 
-    bounds_list = bounds2.tolist()
-    bounds_list.append(number.tolist())
-    #
-    # Call sincpt to determine coordinates of the
-    # intersection of this vector with the surface
-    # of Phoebe.
-    #
     tup = None
     try:
         tup = find_ray_surface_intercept_by_DSK_segments(False, 'PHOEBE', [], 140254384.185, 'IAU_PHOEBE', vertex_array, direction_arrays)
@@ -250,9 +227,6 @@ def dskxsi():
             zdata.append(vec[2])
         ax.scatter3D(xdata, ydata, zdata)
         plt.show()
-        # Now, we have discovered a point of intersection.
-        # Start by displaying the position vector in the
-        # IAU_PHOEBE frame of the intersection.
     except:
         raise
 
@@ -267,12 +241,15 @@ def distance_formula(a, b):
 # Testing This stuff
 ROSETTA = 'Rosetta'
 ROSETTA_UTC = ['2016-12-31', '2016-12-31']
+ROSETTA_NUM_SAMPLES = 150
 ROSETTA_NACID = -226807
+CASSINI = 'CASSINI_ISS_NAC'
 CASSINI_UTC = ['2004-06-20', '2005-12-01']
+REC = 'REC'
 
 if __name__ == '__main__':
 
     init_kernels()
 
-    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
-    #dskxsi()
+    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC, ROSETTA_NUM_SAMPLES)
+    #dskxsi(CASSINI)
