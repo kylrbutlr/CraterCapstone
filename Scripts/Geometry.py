@@ -270,6 +270,5 @@ if __name__ == '__main__':
 
     init_kernels()
 
-    #Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
-    dskxsi()
-
+    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
+    #dskxsi()
