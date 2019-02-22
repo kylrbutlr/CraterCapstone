@@ -7,6 +7,7 @@ More documentation to come.
 import spiceypy as spice
 import datetime as datetime
 import enum
+from spiceypy.utils.support_types import SpiceyError
 
 spice.dskxsi
 spice.dskxv
@@ -27,6 +28,32 @@ def spacecraft_position_and_orientation(spacecraft, point):
     :return:
     """
     pass
+
+
+def get_id_code(name):
+    """
+    check and return id code of kernel
+    :param name: name of kernel, ex 'Rosetta'
+    :return: id code if found or SpiceyError if not found
+    """
+    try:
+        nacid = spice.bodn2c(name)
+    except SpiceyError:
+        # Stop the program if the code was not found.
+        print('Unable to locate the ID code for ' + name)
+        raise
+    return nacid
+
+
+def convert_lat_to_rec_coord(radius, longitude, latitude):
+    """
+    Convert from latitudinal coordinates to rectangular coordinates.
+    :param radius: Distance of a point from the origin
+    :param longitude: Longitude of point in radians.
+    :param latitude: Latitude of point in radians.
+    :return: Rectangular coordinates of the point. 3-element array of floats
+    """
+    return spice.latrec(radius, longitude, latitude)
 
 """
 Create Spice Wrappers Here:
@@ -105,8 +132,23 @@ def convert_utc_to_et(date: str):
     :return: time in Ephemeris Time Format(float)
     """
 
-    # w = datetime.date.strftime(date,'%b %d, %Y')
     return spice.utc2et(date)
+
+def get_et_One(utc):
+    """
+    Get et date of first utc date
+    :param utc: array of two utc dates
+    :return: et date of first utc date
+    """
+    return convert_utc_to_et(utc[0])
+
+def get_et_Two(utc):
+    """
+    Get et date of second utc date
+    :param utc: array of two utc dates
+    :return: et date of second utc date
+    """
+    return convert_utc_to_et(utc[0])
 
 ###############
 # SPK Kernels #
@@ -155,9 +197,24 @@ def find_frame_transformation(from_object: str, to_object:str, time: float):
 ##############
 
 
-def find_ray_surface_intercept(target: str, time: float, fixed_reference: str, correction: str,
-                               observer_name: str, direction_reference:str, direction_vector: list,
-                               method: str = 'DSK/UNPRIORITIZED'):
+def find_ray_surface_intercept_by_DSK_segments(pri, target, srflst, et, fixref, vtxarr, dirarr):
+    """
+    Compute ray-surface intercepts for a set of rays, using data provided by multiple loaded DSK segments.
+    :param pri: (bool) – Data prioritization flag.
+    :param target: (str) – Target body name.
+    :param srflst: (list of int) – Surface ID list.
+    :param et: (float) – Epoch, expressed as seconds past J2000 TDB.
+    :param fixref: (str) – Name of target body-fixed reference frame.
+    :param vtxarr: (Nx3-Element Array of floats) – Array of vertices of rays.
+    :param dirarr: (Nx3-Element Array of floats) – Array of direction vectors of rays.
+    :return: Intercept point array and Found flag array. Tuple
+    """
+    return spice.dskxv(pri, target, srflst, et, fixref, vtxarr, dirarr)
+
+
+def find_ray_surface_intercept_at_epoch(target: str, time: float, fixed_reference: str, correction: str,
+                                        observer_name: str, direction_reference:str, direction_vector: list,
+                                        method: str = 'DSK/UNPRIORITIZED'):
     """
     Finds where a ray intercepts a surface in Cartesian coordinates
 

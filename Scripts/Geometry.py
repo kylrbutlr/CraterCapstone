@@ -4,10 +4,8 @@ This is the Geometry module, the powerhouse of the crater project. More document
 
 # Import packages/modules here
 from Spice import *
-import spiceypy as spice
 import numpy as np
 import math
-from spiceypy.utils.support_types import SpiceyError
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
@@ -74,32 +72,6 @@ def init_kernels():
     load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
 
 
-def get_et_values(utc):
-    """
-    Get et values one and two, so we can vectorize str2et
-    :param utc: array of two utc dates
-    :return: etOne and etTwo
-    """
-    etOne = convert_utc_to_et(utc[0])
-    etTwo = convert_utc_to_et(utc[1])
-    return [etOne, etTwo]
-
-
-def get_id_code(name):
-    """
-    Initial check of id code of kernel, so program can stop if not found
-    :param name: name of kernel, ex 'Rosetta'
-    :return: id code if found or SpiceyError if not found
-    """
-    try:
-        nacid = spice.bodn2c(name)
-    except SpiceyError:
-        # Stop the program if the code was not found.
-        print('Unable to locate the ID code for ' + name)
-        raise
-    return nacid
-
-
 def find_length_for_vertex_array(fov):
     """
     Returns length for a vertex array
@@ -121,7 +93,7 @@ def conv_lat_to_rec_in_vertex_array(length):
     vertex_array = []
     for i in length:
         for j in length:
-            vertex_array.append(spice.latrec(10000000000, i, j))
+            vertex_array.append(convert_lat_to_rec_coord(10000000000, i, j))
     vertex_array = np.array(vertex_array)
     return vertex_array
 
@@ -154,11 +126,9 @@ def get_position_vectors(vertex_array, etOne, body, vector):
     zdata = []
 
     for vec in vertex_array:
-        # Call sincpt to determine coordinates of the intersection of this vector with the surface
         try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept('67P/C-G', etOne, '67P/C-G_CK', 'NONE', body,
-                                                                     vector, vec)
-            # Now, we have discovered a point of intersection.
+            point, trgepc, srfvec, area = find_ray_surface_intercept_at_epoch('67P/C-G', etOne, '67P/C-G_CK', 'NONE', body,
+                                                                              vector, vec)
             #TODO do these need to printed?
             print(' Position vector of surface intercept in the 67P/C-G_CK frame (km):')
             print(' X = {:16.3f}'.format(point[0]))
@@ -177,10 +147,9 @@ def Brute_Force(body, nacid, utc):
     ax = plt.axes(projection='3d')
 
     # get et values
-    etVals = get_et_values(utc)
-    etOne = etVals[0]
+    etOne = get_et_One(utc)
 
-    # Initial check for kernel id code
+    # Initial check for kernel id code, so program can stop if not found
     get_id_code(body)
 
     # find fov
@@ -222,8 +191,6 @@ def dskxsi():
     ax = plt.axes(projection='3d')
     ROOM = 4
     nacid = None
-
-    get_et_values(['2004-06-20', '2005-12-01'])
 
     nacid = get_id_code('CASSINI_ISS_NAC')
 
@@ -267,7 +234,7 @@ def dskxsi():
     #
     tup = None
     try:
-        tup = spice.dskxv(False, 'PHOEBE', [], 140254384.185, 'IAU_PHOEBE', vertex_array, direction_arrays)
+        tup = find_ray_surface_intercept_by_DSK_segments(False, 'PHOEBE', [], 140254384.185, 'IAU_PHOEBE', vertex_array, direction_arrays)
         print(tup)
         xdata = []
         ydata = []
@@ -297,11 +264,12 @@ def distance_formula(a, b):
 ROSETTA = 'Rosetta'
 ROSETTA_UTC = ['2016-12-31', '2016-12-31']
 ROSETTA_NACID = -226807
+CASSINI_UTC = ['2004-06-20', '2005-12-01']
 
 if __name__ == '__main__':
 
     init_kernels()
 
-    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
-    #dskxsi()
+    #Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC)
+    dskxsi()
 
