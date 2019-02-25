@@ -175,15 +175,38 @@ def create_vertex_array(fov, num_of_samples, rec=None):
     return vertex_array
 
 
-def plot_position_vectors(position_vectors):
+def calculate_intercept_point_array(nacid, ROOM, NUM_SAMPLES, TARGET, EPOCH, FIXEDREF):
+    fov = find_fov(nacid, ROOM)
+    vertex_array = create_vertex_array(fov, NUM_SAMPLES)
+    direction_arrays = get_direction_arrays(vertex_array)
+    vertex_array = vertex_array.tolist()
+    direction_arrays = direction_arrays.tolist()
+
+    intercept_array = find_ray_surface_intercept_by_DSK_segments(False, TARGET, [], EPOCH, FIXEDREF, vertex_array, direction_arrays)
+    print(intercept_array)
+    xdata = []
+    ydata = []
+    zdata = []
+
+    for intercept in intercept_array[0]:
+        xdata.append(intercept[0])
+        ydata.append(intercept[1])
+        zdata.append(intercept[2])
+
+    intercept_array = [xdata, ydata, zdata]
+    return intercept_array
+
+
+
+def plot_ray_surface_intercept(intercept_vectors):
     """
     Plots the position vectors of the ray surface intercepts
-    :param position_vectors: position vectors
+    :param intercept_vectors: position vectors or intercept points
     :return: figure plot
     """
     plt.figure()
     ax = plt.axes(projection='3d')
-    ax.scatter3D(position_vectors[0], position_vectors[1], position_vectors[2], c=position_vectors[2])
+    ax.scatter3D(intercept_vectors[0], intercept_vectors[1], intercept_vectors[2], c=intercept_vectors[2])
     plt.show()
 
 
@@ -192,7 +215,7 @@ def Brute_Force(body, nacid, utc, num_of_samples):
     get_id_code(body)
 
     position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples)
-    plot_position_vectors(position_vectors)
+    plot_ray_surface_intercept(position_vectors)
 
 
 def dskxsi(body):
@@ -201,34 +224,9 @@ def dskxsi(body):
     Will fix this hot garbage later
     :return:
     """
-    plt.figure()
-    ax = plt.axes(projection='3d')
-    ROOM = 4
-
     nacid = get_id_code(body)
-
-    fov = find_fov(nacid, ROOM)
-    vertex_array = create_vertex_array(fov, 10)
-    direction_arrays = get_direction_arrays()
-    vertex_array = vertex_array.tolist()
-    direction_arrays = direction_arrays.tolist()
-
-    tup = None
-    try:
-        tup = find_ray_surface_intercept_by_DSK_segments(False, 'PHOEBE', [], 140254384.185, 'IAU_PHOEBE', vertex_array, direction_arrays)
-        print(tup)
-        xdata = []
-        ydata = []
-        zdata = []
-
-        for vec in tup[0]:
-            xdata.append(vec[0])
-            ydata.append(vec[1])
-            zdata.append(vec[2])
-        ax.scatter3D(xdata, ydata, zdata)
-        plt.show()
-    except:
-        raise
+    intercept_point_array = calculate_intercept_point_array(nacid, CASSINI_ROOM, CASSINI_NUM_SAMPLES, CASSINI_TARGET, CASSINI_EPOCH, CASSINI_FIXEDREF)
+    plot_ray_surface_intercept(intercept_point_array)
 
 
 def distance_formula(a, b):
@@ -245,11 +243,16 @@ ROSETTA_NUM_SAMPLES = 150
 ROSETTA_NACID = -226807
 CASSINI = 'CASSINI_ISS_NAC'
 CASSINI_UTC = ['2004-06-20', '2005-12-01']
+CASSINI_NUM_SAMPLES = 10
+CASSINI_EPOCH = 140254384.185
 REC = 'REC'
+CASSINI_ROOM = 4
+CASSINI_TARGET = 'PHOEBE'
+CASSINI_FIXEDREF = 'IAU_PHOEBE'
 
 if __name__ == '__main__':
 
     init_kernels()
 
-    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC, ROSETTA_NUM_SAMPLES)
-    #dskxsi(CASSINI)
+    #Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC, ROSETTA_NUM_SAMPLES)
+    dskxsi(CASSINI)
