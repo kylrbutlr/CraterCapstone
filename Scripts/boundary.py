@@ -8,53 +8,19 @@ ax = fig.add_subplot(111, projection='3d')
 
 
 def boundary(points):
-    points_1 = points.copy()
-    points = points[:, :2]
-    # hull = ConvexHull(points)
-    edges = alpha_shape(points, alpha=0.35, only_outer=True)
-    # ax.plot(points[:, 0], points[:, 1], '.')
-    for i, j in edges:
-        temp1 = points[[i, j], 0]
-        temp2 = points[[i, j], 1]
-        ax.plot(points[[i, j], 0], points[[i, j], 1])
-    plt.show()
-
-    point_set = set()
+    """
+    :param points: np.array of 3D points
+    :return: np.array of tuples corresponding to the vertices of the edges
+    """
     footprintPoints = []
+    edges = alpha_shape(points[:, :2], alpha=0.35, only_outer=True)
+
     for i, j in edges:
-        if i not in point_set:
-            footprintPoints.append(points_1[i])
-            point_set.add(i)
-        if j not in point_set:
-            footprintPoints.append(points_1[j])
-            point_set.add(j)
-    footprintPoints = np.array(footprintPoints)
-    Axes3D.plot(ax, xs=footprintPoints[:, 0], ys=footprintPoints[:, 1], zs=footprintPoints[:, 2])
-    plt.show()
+        footprintPoints.append((points[i], points[j]))
+
+    footprintPoints = np.array(footprintPoints)  # Converts to a numpy array
+
     return footprintPoints
-    # Axes3D.plot(ax, xs=hull.simplices[:, 0], ys=hull.simplices[:, 1], zs=hull.simplices[:, 2])
-    # ax.scatter3D(xs=points[:, 0], ys=points[:, 1], zs=points[:, 2])
-    """
-    Axes3D.plot(xs=points[:,0], ys=points[:,1], zs=points[:,2])
-    for simplex in hull.simplices:
-        Axes3D.plot(xs=points[simplex, 0], ys=points[simplex, 1], zs=points[simplex, 2])
-    plt.plot(points[hull.vertices, 0], points[hull.vertices, 1], points[hull.vertices, 2], 'r--', lw=2)
-    plt.plot(points[hull.vertices[0], 0], points[hull.vertices[0], 1], points[hull.vertices[0], 2], 'ro')
-    """
-    # plt.show()
-
-
-def shape(points):
-    X = points[:, 0]
-    Y = points[:, 1]
-
-    some_poly = Polygon(points)
-
-    # Extract the point values that define the perimeter of the polygon
-    x, y = some_poly.exterior.coords.xy
-    Axes3D.plot(ax, xs=x, ys=y, zs=1)
-    plt.show()
-    print(x, y)
 
 
 def alpha_shape(points, alpha, only_outer=True):
@@ -109,7 +75,7 @@ def alpha_shape(points, alpha, only_outer=True):
 if __name__ == "__main__":
     test_file = r'C:\Users\Kyler\Documents\GitHub\CSE450Project\capstone\67P_test_scan.csv'
     vertices = np.genfromtxt(test_file, delimiter=",")
-    boundary(vertices)
+    print(boundary(vertices))
     # shape(vertices)
 
 
