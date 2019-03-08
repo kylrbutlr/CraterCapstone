@@ -8,31 +8,7 @@ import spiceypy as spice
 import datetime as datetime
 import enum
 import numpy as np
-import matplotlib.pyplot as plt
-
-def compute_view_frustum(instrument):
-    """
-    stub
-    :param instrument: Data structure that models the instrument.
-    :return:
-    """
-    pass
-
-
-def spacecraft_position_and_orientation(spacecraft, point):
-    """
-    Look under SPK Kernel for now
-    :param spacecraft: Data structure that models the spacecraft.
-    :param point: point in time.
-    :return:
-    """
-    pass
-
-
-"""
-Create Spice Wrappers Here:
-"""
-
+import Util
 
 ###########
 # Kernels #
@@ -224,6 +200,7 @@ def get_instrument_fov(instrument_id: int, max_return: int = 10):
 
     return spice.getfov(instrument_id, max_return)
 
+
 def get_shape_information(shapeFilePath: str):
     """
     Loads the shape file (dsk) and returns the vertices of the shape and
@@ -245,6 +222,7 @@ def get_shape_information(shapeFilePath: str):
 
     return vertices_array, plate_array
 
+
 def print_ver():
     """
     Check to see if Spiceypy is installed
@@ -253,97 +231,29 @@ def print_ver():
     print(spice.tkvrsn('TOOLKIT'))
 
 
-# Testing garbage out
 if __name__ == '__main__':
-    print_ver()
+    # Load the kernels
     load_kernel('../kernels/mk/ROS_OPS.TM')
-    print('break')
-    print(spice.ktotal(KernelType.SPK.value))
-    print(convert_utc_to_et('2018-05-05'))
-    frame, vector, number, bounds, bounds2 = get_instrument_fov(-226807)
 
-    print('bounds')
-    print(bounds2)
+    # Load the image metafile information
+    time, size = Util.get_lbl_information(r'../67P/ros_cam1_20150311t043620.lbl')
 
+    # Find the position of the ROS_NAVCAM at time image was taken, based around 67P comet
+    positions, lightTimes = sp_kernel_position('ROS_NAVCAM-A', convert_utc_to_et(time), 'J2000', 'NONE', '67P/C-G')
+    positions = np.asarray(positions).T
 
-    # Messing around with positions of Rosetta mission
+    # Orientation Matrix for each of them (may be incorrect)
+    # Orientation of ROS_NAVCAM frame to 67P Frame
+    orientation_matrix = position_transformation_matrix("ROS_NAVCAM-A", "67P/C-G_CK", convert_utc_to_et(time))
 
-    step = 4000
-    # we are going to get positions between these two dates
-    utc = ['2014-08-06', '2016-12-31']
+    # Multiply orientation_matrix by camera vector
+    # something like this because I don't have the camera vectors
 
-    # get et values one and two, we could vectorize str2et
-    etOne = convert_utc_to_et(utc[0])
-    etTwo = convert_utc_to_et(utc[1])
-    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
+    # for i in range(len(camera)):
+    #    camera[i] = np.matmul(camera[i], orientation_matrix)
 
-    # get times
-    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
-
-    # check first few times:
-    print(times[0:3])
-
-    positions, lightTimes = sp_kernel_position('ROSETTA', times, 'J2000', 'NONE', 'EARTH BARYCENTER')
-
-    # Positions is a 3xN vector of XYZ positions
-    print("Positions: ")
-    print(positions[0])
-
-    # Light times is a N vector of time
-    print("Light Times: ")
-    print(lightTimes[0])
-
-    positions = np.asarray(positions).T # positions is a list, make it an np array for easier indexing
-
-    print("Vertices of 2867 Steins")
-    print(get_shape_information('../kernels/dsk/ROS_ST_K020_OSPCLAM_N_V1.bds'))
+    # Camera/Instrument information
+    shape, frame, bsight, n, bounds = get_instrument_fov(spice.bodn2c("ROS_NAVCAM-A"))
 
     unload_all_kernels()
-
-    """
-    # Cassini Example from https://media.readthedocs.org/pdf/spiceypy/master/spiceypy.pdf
-    load_kernel('kernels/naif0009.tls')
-    load_kernel('kernels/cas00084.tsc')
-    load_kernel('kernels/cpck05Mar2004.tpc')
-    load_kernel('kernels/020514_SE_SAT105.bsp')
-    load_kernel('kernels/981005_PLTEPH-DE405S.bsp')
-    load_kernel('kernels/030201AP_SK_SM546_T45.bsp')
-    load_kernel('kernels/04135_04171pc_psiv2.bc')
-    load_kernel('kernels/cas_v37.tf')
-    load_kernel('kernels/cas_iss_v09.ti')
-    print(spice.ktotal(KernelType.SPK.value))
-
-    step = 4000
-    # we are going to get positions between these two dates
-    utc = ['2004-06-20', '2005-12-01']
-
-    # get et values one and two, we could vectorize str2et
-    etOne = convert_utc_to_et(utc[0])
-    etTwo = convert_utc_to_et(utc[1])
-    print("ET One: {}, ET Two: {}".format(etOne, etTwo))
-
-    # get times
-    times = [x*(etTwo-etOne)/step + etOne for x in range(step)]
-
-    # check first few times:
-    print(times[0:3])
-
-    positions, lightTimes = sp_kernel_position('Cassini', times, 'J2000', 'NONE', 'SATURN BARYCENTER')
-
-    # Positions is a 3xN vector of XYZ positions
-    print("Positions: ")
-    print(positions[0])
-
-    # Light times is a N vector of time
-    print("Light Times: ")
-    print(lightTimes[0])
-
-    positions = np.asarray(positions).T # positions is a list, make it an ndarray for easier indexing
-    fig = plt.figure(figsize=(9, 9))
-    ax  = fig.add_subplot(111)
-    ax.plot(positions[0], positions[1], positions[2])
-    plt.title('SpiceyPy Cassini Position Example from Jun 20, 2004 to Dec 1, 2005')
-    plt.show()
-    unload_all_kernels()
-    """
 
