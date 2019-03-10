@@ -1,10 +1,5 @@
 import numpy as np
 from scipy.spatial import Delaunay
-from shapely.geometry import Polygon
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
 
 
 def boundary(points):
@@ -73,7 +68,7 @@ def alpha_shape(points, alpha, only_outer=True):
 
 
 if __name__ == "__main__":
-    test_file = r'C:\Users\Kyler\Documents\GitHub\CSE450Project\capstone\67P_test_scan.csv'
+    test_file = '../Tests/67P_test_scan.csv'
     vertices = np.genfromtxt(test_file, delimiter=",")
     print(boundary(vertices))
     # shape(vertices)
