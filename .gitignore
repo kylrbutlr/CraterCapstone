@@ -13,6 +13,7 @@ venv/
 kernels/kernels/dsk/aareadme.txt
 *.OBJ
 *.PNG
+*.pyc
 kernels/ck/aareadme.txt
 kernels/dsk/aareadme.txt
 kernels/fk/aareadme.txt
