@@ -150,7 +150,7 @@ def get_et_two(utc):
     :param utc: array of two utc dates
     :return: et date of second utc date
     """
-    return convert_utc_to_et(utc[0])
+    return convert_utc_to_et(utc[1])
 
 
 ###############
