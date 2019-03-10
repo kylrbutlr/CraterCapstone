@@ -58,7 +58,9 @@ def init_kernels():
     Load all the kernels
     :return: void
     """
-    load_kernel('../kernels/mk/ROS_OPS.TM')
+    load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
+    load_kernel('../kernels/kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
+    """
     load_kernel('../kernels/cassini/naif0009.tls')
     load_kernel('../kernels/cassini/cas00084.tsc')
     load_kernel('../kernels/cassini/cpck05Mar2004.tpc')
@@ -69,7 +71,9 @@ def init_kernels():
     load_kernel('../kernels/cassini/cas_v37.tf')
     load_kernel('../kernels/cassini/cas_iss_v09.ti')
     load_kernel('../kernels/cassini/phoebe_64q.bds')
-    load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
+    l
+    """
+
 
 
 def find_length_for_vertex_array(fov, num_of_samples):
@@ -111,7 +115,7 @@ def get_direction_arrays(vertex_array):
     return direction_arrays
 
 
-def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples):
+def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body, target_body_reference, correction='NONE'):
     """
     Function gets x,y,z position vectors
     :param body: name of asteroid body
@@ -120,9 +124,7 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of
     :param num_of_samples: number of samples for linspace vertex array
     :return: x,y,z data arrays in an array
     """
-    xdata = []
-    ydata = []
-    zdata = []
+    data = []
     etOne = get_et_one(utc)
     fov = find_fov(nacid)
     reference_frame = get_reference_frame_fov(fov)
@@ -130,16 +132,9 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of
 
     for vec in vertex_array:
         try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept_at_epoch('67P/C-G', etOne, '67P/C-G_CK', 'NONE', body,
+            point, trgepc, srfvec, area = find_ray_surface_intercept_at_epoch(target_body, etOne, target_body_reference , correction, body,
                                                                               reference_frame, vec)
-            #TODO do these need to printed?
-            print(' Position vector of surface intercept in the 67P/C-G_CK frame (km):')
-            print(' X = {:16.3f}'.format(point[0]))
-            print(' Y = {:16.3f}'.format(point[1]))
-            print(' Z = {:16.3f}'.format(point[2]))
-            xdata.append(point[0])
-            ydata.append(point[1])
-            zdata.append(point[2])
+            data.append(point)
         except:
             raise
 
@@ -152,7 +147,7 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of
         # print(direction_arrays)
         # print(n_rays)
 
-    return [xdata, ydata, zdata]
+    return data
 
 
 def create_vertex_array(fov, num_of_samples, rec=None):
@@ -184,18 +179,8 @@ def calculate_intercept_point_array(nacid, ROOM, NUM_SAMPLES, TARGET, EPOCH, FIX
 
     intercept_array = find_ray_surface_intercept_by_DSK_segments(False, TARGET, [], EPOCH, FIXEDREF, vertex_array, direction_arrays)
     print(intercept_array)
-    xdata = []
-    ydata = []
-    zdata = []
-
-    for intercept in intercept_array[0]:
-        xdata.append(intercept[0])
-        ydata.append(intercept[1])
-        zdata.append(intercept[2])
-
-    intercept_array = [xdata, ydata, zdata]
+    intercept_array = intercept_array[0]
     return intercept_array
-
 
 
 def plot_ray_surface_intercept(intercept_vectors):
@@ -204,18 +189,29 @@ def plot_ray_surface_intercept(intercept_vectors):
     :param intercept_vectors: position vectors or intercept points
     :return: figure plot
     """
+
+    xdata = []
+    ydata = []
+    zdata = []
+
+    for intercept in intercept_vectors:
+        xdata.append(intercept[0])
+        ydata.append(intercept[1])
+        zdata.append(intercept[2])
+
     plt.figure()
     ax = plt.axes(projection='3d')
-    ax.scatter3D(intercept_vectors[0], intercept_vectors[1], intercept_vectors[2], c=intercept_vectors[2])
+    ax.scatter3D(xdata, ydata, zdata, c=zdata)
     plt.show()
 
 
-def Brute_Force(body, nacid, utc, num_of_samples):
+def Brute_Force(body, nacid, utc, num_of_samples, target_body, target_body_reference, correction='NONE'):
     # Initial check for kernel id code, so program can stop if not found
     get_id_code(body)
 
-    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples)
-    plot_ray_surface_intercept(position_vectors)
+    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body, target_body_reference)
+    # plot_ray_surface_intercept(position_vectors)
+    return position_vectors
 
 
 def dskxsi(body):
@@ -241,6 +237,8 @@ ROSETTA = 'Rosetta'
 ROSETTA_UTC = ['2016-12-31', '2016-12-31']
 ROSETTA_NUM_SAMPLES = 150
 ROSETTA_NACID = -226807
+Target_Body = '67P/C-G'
+Target_Body_ref_frame = '67P/C-G_CK'
 CASSINI = 'CASSINI_ISS_NAC'
 CASSINI_UTC = ['2004-06-20', '2005-12-01']
 CASSINI_NUM_SAMPLES = 10
@@ -254,5 +252,5 @@ if __name__ == '__main__':
 
     init_kernels()
 
-    #Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC, ROSETTA_NUM_SAMPLES)
-    dskxsi(CASSINI)
+    Brute_Force(ROSETTA, ROSETTA_NACID, ROSETTA_UTC, ROSETTA_NUM_SAMPLES, Target_Body, Target_Body_ref_frame)
+    # dskxsi(CASSINI)
