@@ -8,6 +8,7 @@ and generates a poly-line (list of coordinates) as output.
 # Import packages/modules here
 import click
 import Geometry
+import pandas as pd
 """
 (body, nacid, utc, num_of_samples, target_body, target_body_reference, correction='NONE')
 """
@@ -46,14 +47,13 @@ def main(spice_kernel, spacecraft, image, epoch, samples, target, reference, nac
     :return: poly-line (array) of points that outline the visible portions of the specified body
     """
     Geometry.init_kernels()
+    """
+    command --spacecraft=Rosetta --samples=150 --nacid=-226807 --target=67P/C-G --reference=67P/C-G_CK 
+    --spice-kernel=whatever --epcoh=2016-12-31 --image=whatever
+    """
     points = Geometry.Brute_Force(spacecraft, nacid, [epoch], samples, target, reference)
-    output_Str = ""
-    for point in points:
-        output_Str += str(point[0]) + "," + str(point[1]) + "," + str(point[2]) + "\n"
-
-    with open(filepath, 'w') as file:
-        file.write(output_Str)
-
+    points.shape=(points.shape[0], points.shape[1]*points.shape[2])
+    pd.DataFrame(points).to_csv('../sampleFootprint.csv', header=None, index=None)
     """
     output = [ (i, i + 1) for i in range(5) ] # TODO: replace with actual output after processing the input
     click.echo('Poly-line generated:')
