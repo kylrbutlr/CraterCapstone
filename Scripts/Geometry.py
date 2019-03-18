@@ -8,6 +8,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
+import boundary
 
 def edges_around_plates(plates):
     """
@@ -58,8 +59,8 @@ def init_kernels():
     Load all the kernels
     :return: void
     """
-    load_kernel('../kernels/kernels/mk/ROS_OPS.TM')
-    load_kernel('../kernels/kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
+    load_kernel('../kernels/mk/ROS_OPS.TM')
+    load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
     """
     load_kernel('../kernels/cassini/naif0009.tls')
     load_kernel('../kernels/cassini/cas00084.tsc')
@@ -210,6 +211,9 @@ def Brute_Force(body, nacid, utc, num_of_samples, target_body, target_body_refer
     get_id_code(body)
 
     position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body, target_body_reference)
+    # plot_ray_surface_intercept(position_vectors)
+    p = np.asarray(position_vectors)
+    position_vectors = boundary.boundary(p)
     # plot_ray_surface_intercept(position_vectors)
     return position_vectors
 
