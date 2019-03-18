@@ -7,10 +7,11 @@ More documentation to come.
 import spiceypy as spice
 import datetime as datetime
 import enum
+import numpy as np
+import matplotlib.pyplot as plt
 from spiceypy.utils.support_types import SpiceyError
 
-
-def compute_view_frustrum(instrument):
+def compute_view_frustum(instrument):
     """
     stub
     :param instrument: Data structure that models the instrument.
@@ -58,6 +59,7 @@ def convert_lat_to_rec_coord(radius, longitude, latitude):
 Create Spice Wrappers Here:
 """
 
+
 ###########
 # Kernels #
 ###########
@@ -71,20 +73,20 @@ class KernelType(enum.Enum):
     for more info about each type refer to:
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/12_intro_to_kernels.pdf
     """
-    SPK = 'spk'     # **Spacecraft and Planet Ephemeris
-    PCK = 'pck'     # Planetary Constants
-    IK = 'ik'       # **Instrument
-    CK = 'ck'       # **Camera Matrix (Orientation)
-    EK = 'ek'       # Events
-    FK = 'fk'       # **Reference Frame Specification
-    SCLK = 'sclk'   # **Spacecraft Clock Correlation
-    LSK = 'lsk'     # **Leap Seconds (Time)
-    MK = 'mk'       # **Meta-Kernel (for loading many kernels)
-    DSK = 'dsk'     # Digital Shape Kernel
-    DBK = 'dbk'     # Database Mechanism
+    SPK = 'spk'  # **Spacecraft and Planet Ephemeris
+    PCK = 'pck'  # Planetary Constants
+    IK = 'ik'  # **Instrument
+    CK = 'ck'  # **Camera Matrix (Orientation)
+    EK = 'ek'  # Events
+    FK = 'fk'  # **Reference Frame Specification
+    SCLK = 'sclk'  # **Spacecraft Clock Correlation
+    LSK = 'lsk'  # **Leap Seconds (Time)
+    MK = 'mk'  # **Meta-Kernel (for loading many kernels)
+    DSK = 'dsk'  # Digital Shape Kernel
+    DBK = 'dbk'  # Database Mechanism
 
 
-def load_kernel(file_name : str):
+def load_kernel(file_name: str):
     """
     Load single or multiple kernels (through meta-kernel file, .mk)
 
@@ -93,7 +95,7 @@ def load_kernel(file_name : str):
     spice.furnsh(file_name)
 
 
-def unload_kernel(file_name : str):
+def unload_kernel(file_name: str):
     """
     Unload a single or multiple kernels (through meta-kernel file, .mk)
     :param file_name: str file path of kernel
@@ -108,7 +110,7 @@ def unload_all_kernels():
     spice.kclear()
 
 
-def check_number_kernels(ktype : KernelType, value: int):
+def kernels_total(ktype: KernelType, value: int):
     """
     Check how many kernels are loaded for testing purposes
     :param ktype: Kernel enum type
@@ -116,6 +118,7 @@ def check_number_kernels(ktype : KernelType, value: int):
     :return: boolean if there is a correct amount of kernels loaded
     """
     return spice.ktotal(ktype.value) == value
+
 
 ########
 # Time #
@@ -157,12 +160,12 @@ def get_et_two(utc):
 ###############
 
 
-def find_body_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
+def sp_kernel_position(main_body: str, time: float, reference_frame: str, correction: str, observing_body: str):
     """
     Loaded from SPK file
     Returns the position of a body relative to another observing body
 
-    Example: body_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
+    Example: sp_kernel_position('Cassini', 595166468.1826606, 'J2000', 'NONE', 'SATURN BARYCENTER')
 
     https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/C/cspice/spkpos_c.html
     :param main_body: the name of target body
@@ -177,11 +180,11 @@ def find_body_position(main_body: str, time: float, reference_frame: str, correc
     return spice.spkpos(main_body, time, reference_frame, correction, observing_body)
 
 
-def find_frame_transformation(from_object: str, to_object:str, time: float):
+def position_transformation_matrix(from_object: str, to_object: str, time: float):
     """
     Returns the transformation matrix of how the frame is moving
 
-    Example: find_frame_transformation ( 'IAU_EARTH', 'J2000', ET  )
+    Example: position_transformation_matrix ( 'IAU_EARTH', 'J2000', ET  )
 
     ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/FORTRAN/spicelib/pxform.html
 
@@ -193,6 +196,7 @@ def find_frame_transformation(from_object: str, to_object:str, time: float):
     """
 
     return spice.pxform(from_object, to_object, time)
+
 
 ##############
 # DSK Kernel #
@@ -240,7 +244,7 @@ def find_ray_surface_intercept_at_epoch(target: str, time: float, fixed_referenc
                         direction_vector)
 
 
-def find_fov(instrument_id: int, max_return: int = 10):
+def get_instrument_fov(instrument_id: int, max_return: int = 10):
     """
     Return information about the instrument such as the shape, reference frame, direction of view, and the corner
     of the instruments. The shape can be a 'POLYGON', 'RECTANGLE', 'CIRCLE', or 'ELLIPSE'.
@@ -280,6 +284,26 @@ def get_number_of_bounds_fov(fov):
 def get_bounds_fov(fov):
     return fov[4]
 
+def get_shape_information(shapeFilePath: str):
+    """
+    Loads the shape file (dsk) and returns the vertices of the shape and
+    the vertices associated to each plate
+
+    :param shapeFilePath: relative path to the dsk files
+    :return:
+            Array of the coordinates of the vertices of the shape,
+            Array of the indices of vertices that make up a plate
+    """
+
+    id = spice.dasopr(shapeFilePath)
+    handle = spice.dlabfs(id)
+
+    num_vertices, num_plates = spice.dskz02(id, handle)
+
+    vertices_array = spice.dskv02(id, spice.dlabfs(id), 1, num_vertices)
+    plate_array = spice.dskp02(id, handle, 1, num_plates)
+
+    return vertices_array, plate_array
 
 def print_ver():
     """
