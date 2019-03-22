@@ -5,53 +5,117 @@ This is the Geometry module, the powerhouse of the crater project. More document
 # Import packages/modules here
 from Spice import *
 import numpy as np
-import math
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 import boundary
+from spiceypy.utils.support_types import SpiceyError
 
-def edges_around_plates(plates):
+
+def find_bound_extrema(fovBounds):
     """
-    stub
-    :param plates: Data structure that contains plates of the model.
-    :return:
+    Returns the min and max values of X and Y values of the fov bounds
+    :param fovBounds: the fov bounds of the instrument
+    :return: minX: the minimum value of X values in fov bounds
+                maxX: the maximum value of X values in fov bounds
+                minY: the minimum value of Y values in fov bounds
+                maxY: the maximum value of Y values in fov bounds
     """
-    pass
+    # Initialize values
+    minX = fovBounds[0][0]
+    maxX = fovBounds[0][0]
+    minY = fovBounds[0][1]
+    maxY = fovBounds[0][1]
+
+    for i in range(len(fovBounds)-1):
+        x_value = fovBounds[i + 1][0]
+        y_value = fovBounds[i + 1][1]
+
+        if x_value > maxX:
+            maxX = x_value
+        if x_value < minX:
+            minX = x_value
+
+        if y_value > maxY:
+            maxY = y_value
+        if y_value < minY:
+            minY = y_value
+
+    return minX, maxX, minY, maxY
 
 
-def generate_texture_mapping(model):
+def get_direction_arrays(fovBounds, num_of_samples):
     """
-    stub
-    :param model: The model without texture mapping.
-    :return:
+    Returns the direction vectors within the fovBounds
+    :param fovBounds: array of the edges of the field of view
+    :param num_of_samples: the number of samples squared
+    :return: direction_arrays: array of directional arrays
     """
-    pass
+    direction_arrays = []
+
+    minX, maxX, minY, maxY = find_bound_extrema(fovBounds)
+    diffX = maxX - minX
+    diffY = maxY - minY
+
+    # Evenly distribute points across the fov bounds
+    for i in range(num_of_samples):
+        for j in range(num_of_samples):
+            direction_arrays.append([minX + i * (diffX / num_of_samples), minY + j * (diffY / num_of_samples),
+                                     fovBounds[0][2]])
+
+    return direction_arrays
 
 
-def camera_vertices(camera):
+def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body,
+                                                        target_body_reference, correction='NONE'):
     """
-    stub
-    :param camera: Data structure that contains information about the camera.
-    :return:
+    Returns an array of many points of intersection at a specific epoch
+    :param body: name of asteroid body
+    :param nacid: id code of body
+    :param utc: epoch
+    :param num_of_samples: number of samples squared scanned within the field of view
+    :param target_body: the naif name of the target body
+    :param target_body_reference: the reference frame of the target body
+    :param correction: aberration correction
+    :return: x,y,z data arrays in an array
     """
-    pass
+    data = []
+    fov = get_instrument_fov(nacid)
+    reference_frame = get_reference_frame_fov(fov)
+    if get_shape_fov(fov) == 'RECTANGLE':
+        direction_array = get_direction_arrays(get_bounds_fov(fov), num_of_samples)
+
+    for vec in direction_array:
+        try:
+            point, trgepc, srfvec = find_ray_surface_intercept_at_epoch(target_body, utc, target_body_reference,
+                                                                        correction, body, reference_frame, vec)
+            data.append(point)
+        except SpiceyError:
+            pass
+
+    return data
 
 
-def plate_frustrum():
-    pass
-
-
-def view_frustrum_vertices():
-    pass
-
-
-def load_shape_data(file):
+def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_reference):
     """
-    stub
-    :param file: file location of teh shape data.
-    :return:
+    Returns the footprint of the target body and the ray intercept points
+    :param body: The observing or spacecraft body name
+    :param nacid: The nacid value of the observing body
+    :param utc: The epoch
+    :param num_of_samples: The number of samples squared
+    :param target_body: the naif name of the target body
+    :param target_body_reference: the reference frame name of the target body
+    :return: position_vectors: the coordinates of the edges of the footprint
+                points: the collection of ray intercept points
     """
-    pass
+
+    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples,
+                                                                           target_body, target_body_reference)
+    # plot_ray_surface_intercept(position_vectors)
+    points = np.asarray(position_vectors)
+    position_vectors = boundary.boundary(points)
+    # plot_ray_surface_intercept(position_vectors)
+    return position_vectors, points
+
+
+#####################################################################################################################
 
 
 def init_kernels():
@@ -99,56 +163,6 @@ def conv_lat_to_rec_in_vertex_array(length):
             vertex_array.append(convert_lat_to_rec_coord(10000000000, i, j))
     vertex_array = np.array(vertex_array)
     return vertex_array
-
-
-def get_direction_arrays(vertex_array):
-    """
-    Given a array of coordinates, find the directions of each
-    :param vertex_array: array of rectangular coordinates
-    :return: direction_arrays: array of directional arrays
-    """
-    n_rays = vertex_array.shape[0]
-    direction_arrays = []
-    print(vertex_array)
-    for n in range(n_rays):
-        direction_arrays.append([1, 0, 0])
-    direction_arrays = np.array(direction_arrays)
-    return direction_arrays
-
-
-def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body, target_body_reference, correction='NONE'):
-    """
-    Function gets x,y,z position vectors
-    :param body: name of asteroid body
-    :param nacid: id code of body
-    :param utc: array with 2 dates
-    :param num_of_samples: number of samples for linspace vertex array
-    :return: x,y,z data arrays in an array
-    """
-    data = []
-    etOne = get_et_one(utc)
-    fov = find_fov(nacid)
-    reference_frame = get_reference_frame_fov(fov)
-    vertex_array = create_vertex_array(fov, num_of_samples, REC)
-
-    for vec in vertex_array:
-        try:
-            point, trgepc, srfvec, area = find_ray_surface_intercept_at_epoch(target_body, etOne, target_body_reference , correction, body,
-                                                                              reference_frame, vec)
-            data.append(point)
-        except:
-            raise
-
-    if get_shape_fov(fov) == 'RECTANGLE':  # will make a more robust version later on
-        """dist1 = distance_formula(bounds2[0], bounds2[1])
-        dist2 = distance_formula(bounds2[2], bounds2[3])
-        area = dist1*dist2
-        print(area)"""
-        # print(vertex_array)
-        # print(direction_arrays)
-        # print(n_rays)
-
-    return data
 
 
 def create_vertex_array(fov, num_of_samples, rec=None):
@@ -204,18 +218,6 @@ def plot_ray_surface_intercept(intercept_vectors):
     ax = plt.axes(projection='3d')
     ax.scatter3D(xdata, ydata, zdata, c=zdata)
     plt.show()
-
-
-def Brute_Force(body, nacid, utc, num_of_samples, target_body, target_body_reference, correction='NONE'):
-    # Initial check for kernel id code, so program can stop if not found
-    get_id_code(body)
-
-    position_vectors = calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of_samples, target_body, target_body_reference)
-    # plot_ray_surface_intercept(position_vectors)
-    p = np.asarray(position_vectors)
-    position_vectors = boundary.boundary(p)
-    # plot_ray_surface_intercept(position_vectors)
-    return position_vectors
 
 
 def dskxsi(body):
