@@ -24,3 +24,6 @@ kernels/mk/aareadme.txt
 kernels/pck/aareadme.txt
 kernels/sclk/aareadme.txt
 kernels/spk/aareadme.txt
+*.lbl
+*.img
+kernels/
