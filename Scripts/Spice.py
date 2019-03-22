@@ -5,15 +5,15 @@ More documentation to come.
 
 # Import packages/modules here
 import spiceypy as spice
-import datetime as datetime
 import enum
 import numpy as np
 import Util
 import Geometry
+import boundary
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d as plt3d
-import boundary
 from spiceypy.utils.support_types import SpiceyError
+
 
 def get_id_code(name):
     """
@@ -110,7 +110,7 @@ def convert_utc_to_et(date: str):
     Converts standard UTC date into ET (Ephemeris Time)
 
     :param date: input time in UTC form
-    :type date: datetime
+    :type date: YYYY-MM-DDTHH:MM:SS.SSS = Year-Month-DayTHour:Minute:Second
     :return: time in Ephemeris Time Format(float)
     """
 
@@ -281,37 +281,21 @@ def print_ver():
     """
     print(spice.tkvrsn('TOOLKIT'))
 
+def get_footprint(kernel_path:str, lbl_path:str, observing_body:str, target_body:str, target_body_frame:str):
+    load_kernel(kernel_path)
+    time, size = Util.get_lbl_information(lbl_path)
+    size = int(size ** (1 / 2))
+    footprint, points = Geometry.brute_force(observing_body, get_id_code(observing_body),
+                                             convert_utc_to_et(time), size, target_body, target_body_frame)
+
+
+    unload_all_kernels()
+    return footprint
 
 if __name__ == '__main__':
-    # Load the kernels
-    load_kernel('../kernels/mk/ROS_OPS.TM')
-    load_kernel('../kernels/dsk/ROS_CG_M001_OSPCLPS_N_V1.BDS')
 
-    # Load the image metafile information
-    time, size = Util.get_lbl_information(r'C:\Users\Brian\Desktop\CSE485\67P\ros_cam1_20141218t054334.lbl')
-
-    # Find the position of the ROS_NAVCAM at time image was taken, based around 67P comet
-    positions, lightTimes = sp_kernel_position('ROS_NAVCAM-A', convert_utc_to_et(time), 'J2000', 'NONE', '67P/C-G')
-    positions = np.asarray(positions).T
-
-    # Orientation Matrix for each of them (may be incorrect)
-    # Orientation of ROS_NAVCAM frame to 67P Frame
-    orientation_matrix = position_transformation_matrix("ROS_NAVCAM-A", "67P/C-G_CK",  convert_utc_to_et(time))
-
-    # Multiply orientation_matrix by camera vector
-    # something like this because I don't have the camera vectors
-
-    # for i in range(len(camera)):
-    #    camera[i] = np.matmul(camera[i], orientation_matrix)
-
-    # Camera/Instrument information
-    shape, frame, bsight, n, bounds = get_instrument_fov(spice.bodn2c("ROS_NAVCAM-A"))
-
-    # print(Geometry.Brute_Force("ROS_NAVCAM-A", get_id_code("ROS_NAVCAM-A"), convert_utc_to_et(time),
-    #                   150, "67P/C-G", "67P/C-G_CK", correction='NONE'))
-
-    region, pts = Geometry.brute_force('ROS_NAVCAM-A', get_id_code("ROS_NAVCAM-A"), convert_utc_to_et(time), 150,
-                               "67P/C-G", "67P/C-G_CK")
+    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20150408t061457.lbl', "ROS_NAVCAM-A",
+                           "67P/C-G", "67P/C-G_CK")
 
     # Figure initialization
     ax = plt3d.Axes3D(plt.figure())
@@ -327,9 +311,6 @@ if __name__ == '__main__':
     verts = w[0]
     # Face data
     faces = w[1]
-
-    # for q in range(len(verts)):
-    #    verts[q] = np.matmul(verts[q], orientation_matrix)
 
     # Some triangles are weird so max is the threshold for triangle distance
     totalMax = 0
@@ -380,10 +361,9 @@ if __name__ == '__main__':
         line = plt3d.art3d.Line3D(xs, ys, zs)
         ax.add_line(line)
 
-    #print(pts)
-    #for i in range(len(pts)):
-    #    ax.scatter(pts[i][0], pts[i][1], pts[i][2], c='r', s=2, marker='o')
     plt.show()
 
 
     unload_all_kernels()
+
+
