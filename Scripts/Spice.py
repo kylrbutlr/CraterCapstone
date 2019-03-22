@@ -284,8 +284,8 @@ def print_ver():
 def get_footprint(kernel_path:str, lbl_path:str, observing_body:str, target_body:str, target_body_frame:str):
     load_kernel(kernel_path)
     time, size = Util.get_lbl_information(lbl_path)
-    size = int(size ** (1 / 2))
-    footprint, points = Geometry.brute_force(observing_body, get_id_code(observing_body),
+    size = int(size ** (1 / 2)) * 5
+    footprint = Geometry.brute_force(observing_body, get_id_code(observing_body),
                                              convert_utc_to_et(time), size, target_body, target_body_frame)
 
 
@@ -294,7 +294,7 @@ def get_footprint(kernel_path:str, lbl_path:str, observing_body:str, target_body
 
 if __name__ == '__main__':
 
-    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20150408t061457.lbl', "ROS_NAVCAM-A",
+    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20141218t054334.lbl', "ROS_NAVCAM-A",
                            "67P/C-G", "67P/C-G_CK")
 
     # Figure initialization

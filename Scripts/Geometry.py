@@ -112,7 +112,7 @@ def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_refer
     points = np.asarray(position_vectors)
     position_vectors = boundary.boundary(points)
     # plot_ray_surface_intercept(position_vectors)
-    return position_vectors, points
+    return position_vectors
 
 
 #####################################################################################################################
