@@ -24,8 +24,8 @@ import Util
               help='The reference of the target body that you desire to observe')
 @click.option('--file_name', prompt='Output File name',  default='output',
               help='The output file name')
-
-def main(file_name:str, kernel_path:str, lbl_path:str, observing_body:str, target_body:str, target_body_frame:str):
+def main(file_name: str, kernel_path: str, lbl_path: str, observing_body: str, target_body: str,
+         target_body_frame: str):
     """
     This is the input/output of the system. To use it, simply run "python CLI.py" in a command window.
     Be sure that Python version 3.7.1 or higher is installed!
@@ -37,6 +37,7 @@ def main(file_name:str, kernel_path:str, lbl_path:str, observing_body:str, targe
     :param lbl_path: the path of the lbl file
     :param observing_body: the naif name of the observing body
     :param target_body: the naif name of the target body
+    :param target_body_frame: the reference frame of the target body
     :return: an array of the end points of the edges of the footprint
     """
     Spice.load_kernel(kernel_path)
@@ -50,11 +51,6 @@ def main(file_name:str, kernel_path:str, lbl_path:str, observing_body:str, targe
 
     Spice.unload_all_kernels()
 
-    """
-    output = [ (i, i + 1) for i in range(5) ] # TODO: replace with actual output after processing the input
-    click.echo('Poly-line generated:')
-    click.echo(output)
-    """
 
 if __name__ == '__main__':
     main()

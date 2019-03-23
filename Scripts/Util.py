@@ -20,6 +20,7 @@ def get_lbl_information(path: str):
 
     return time, size
 
+
 def load_image_lbl(path: str):
     """
     Loads the lbl file and returns the text
@@ -30,11 +31,12 @@ def load_image_lbl(path: str):
     lbl_text = open(path, "r").read()
     return lbl_text
 
-def get_lbl_value(lbl_text:str, var_name: str):
+
+def get_lbl_value(lbl_text: str, var_name: str):
     """
     Returns the value of the varName that is declare in the lbl_text
     :param lbl_text: the contents of the lbl file
-    :param varName: the name of the variable declared in the lbl file
+    :param var_name: the name of the variable declared in the lbl file
     :return: the value of the variable name in as a string
     """
 
@@ -50,7 +52,8 @@ def get_lbl_value(lbl_text:str, var_name: str):
         except StopIteration:
             break
 
-def get_image_time(lbl_text:str):
+
+def get_image_time(lbl_text: str):
     """
     Returns the image time from the lbl file
     :param lbl_text: the contents of the lbl file
@@ -64,7 +67,8 @@ def get_image_time(lbl_text:str):
 
     return time
 
-def get_image_size(lbl_text:str):
+
+def get_image_size(lbl_text: str):
     """
     Returns the size of the image from the lbl file
     :param lbl_text: the contents of the lbl file

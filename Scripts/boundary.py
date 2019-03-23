@@ -66,11 +66,3 @@ def alpha_shape(points, alpha, only_outer=True):
             add_edge(edges, ic, ia)
     return edges
 
-
-if __name__ == "__main__":
-    test_file = '../Tests/67P_test_scan.csv'
-    vertices = np.genfromtxt(test_file, delimiter=",")
-    print(boundary(vertices))
-    # shape(vertices)
-
-
