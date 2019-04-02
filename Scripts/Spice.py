@@ -12,6 +12,7 @@ import Geometry
 import boundary
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d as plt3d
+import pandas as pd
 from spiceypy.utils.support_types import SpiceyError
 
 
@@ -297,7 +298,9 @@ if __name__ == '__main__':
     region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20150408t061457.lbl', "ROS_NAVCAM-A",
                            "67P/C-G", "67P/C-G_CK")
 
-    polyline = Util.convert_to_polyline(region)
+    polyline = Util.correct_output(region)
+    formatted_polylines = Util.prepare_to_save_to_file(polyline)
+    pd.DataFrame(formatted_polylines).to_csv('../Outputs/ros_cam1_20150408t061457.csv', header=None, index=None)
 
     # Figure initialization
     ax = plt3d.Axes3D(plt.figure())

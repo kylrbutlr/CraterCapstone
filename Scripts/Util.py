@@ -120,3 +120,14 @@ def correct_output(points):
     return polyline_result
 
 
+def prepare_to_save_to_file(polyline):
+    formatted_polylines = []
+    for poly in polyline:
+        formatted_polyline = []
+        for point in poly:
+            points_string = str(point[0]) + " " + str(point[1]) + " " + str(point[2])
+            formatted_polyline.append(points_string)
+        formatted_polylines.append(formatted_polyline)
+    formatted_polylines = np.asarray(formatted_polylines)
+    return formatted_polylines
+
