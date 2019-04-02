@@ -6,6 +6,8 @@ This module is for useful classes that may be implemented and segmented into the
 ### lbl file ###
 ################
 
+import spiceypy as sp
+import numpy as np
 def get_lbl_information(path: str):
     """
     Returns the image time and size from the lbl file
@@ -78,3 +80,43 @@ def get_image_size(lbl_text:str):
         size = 0
 
     return size
+
+
+def convert_to_polyline(points):
+    point_dict = dict()
+    for point1, point2 in points:
+        point_dict[tuple(point1)] = tuple(point2)
+    result = []
+    while point_dict:
+        key = next(iter(point_dict.values()))
+        val = point_dict[key]
+        polyline_points = [point_dict.pop(key)]
+        while val != key:
+            polyline_points.append(np.asarray(val))
+            val = point_dict.pop(val)
+        polyline_points.append(np.asarray(val))  # Remove this line if line does not need first point
+
+        result.append(polyline_points)
+    result = np.asarray(result)
+    return result
+
+
+def convert_points_to_lat_long(points):
+    lat_long_points = []
+    for point in points:
+        radius, lat, long = sp.reclat(point)
+        # lat = lat*sp.dpr() # converts to plantocentric coordinates
+        # long = long*sp.dpr() # converts to plantocentric coordinates
+        lat_long_points.append([lat, long, radius])
+    lat_long_points = np.asarray(lat_long_points)
+    return lat_long_points
+
+
+def correct_output(points):
+    polyline_result = []
+    polyline = convert_to_polyline(points)
+    for line in polyline:
+        polyline_result.append(convert_points_to_lat_long(line))
+    return polyline_result
+
+

@@ -294,8 +294,10 @@ def get_footprint(kernel_path:str, lbl_path:str, observing_body:str, target_body
 
 if __name__ == '__main__':
 
-    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20141218t054334.lbl', "ROS_NAVCAM-A",
+    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20150408t061457.lbl', "ROS_NAVCAM-A",
                            "67P/C-G", "67P/C-G_CK")
+
+    polyline = Util.convert_to_polyline(region)
 
     # Figure initialization
     ax = plt3d.Axes3D(plt.figure())
@@ -353,13 +355,25 @@ if __name__ == '__main__':
             ax.add_collection3d(face)
 
     # Was for seeing what a proper threshold is
-
+    # """
+    for poly in polyline:
+        prev = poly[0]
+        for i in range(1, len(poly)):
+            next = poly[i]
+            xs = prev[0], next[0]
+            ys = prev[1], next[1]
+            zs = prev[2], next[2]
+            line = plt3d.art3d.Line3D(xs, ys, zs)
+            ax.add_line(line)
+            prev = next
+    """
     for i in range(len(region)):
         xs = region[i, 0, 0], region[i, 1, 0]
         ys = region[i, 0, 1], region[i, 1, 1]
         zs = region[i, 0, 2], region[i, 1, 2]
         line = plt3d.art3d.Line3D(xs, ys, zs)
         ax.add_line(line)
+    # """
 
     plt.show()
 
