@@ -8,7 +8,7 @@ def boundary(points):
     :return: np.array of tuples corresponding to the vertices of the edges
     """
     footprintPoints = []
-    edges = alpha_shape(points[:, :2], alpha=0.35, only_outer=True)
+    edges = alpha_shape(points[:, :2], alpha=0.15, only_outer=True)
 
     for i, j in edges:
         footprintPoints.append((points[i], points[j]))

@@ -85,7 +85,10 @@ def get_image_size(lbl_text:str):
 def convert_to_polyline(points):
     point_dict = dict()
     for point1, point2 in points:
-        point_dict[tuple(point1)] = tuple(point2)
+        if tuple(point1) in point_dict:
+            continue
+        else:
+            point_dict[tuple(point1)] = tuple(point2)
     result = []
     while point_dict:
         key = next(iter(point_dict.values()))
