@@ -299,8 +299,8 @@ if __name__ == '__main__':
                            "67P/C-G", "67P/C-G_CK")
 
     polyline = Util.convert_to_polyline(region)
-    # formatted_polylines = Util.prepare_to_save_to_file(polyline)
-    # pd.DataFrame(formatted_polylines).to_csv('../Outputs/ros_cam1_20150408t061457.csv', header=None, index=None)
+    formatted_polylines = Util.prepare_to_save_to_file(polyline)
+    pd.DataFrame(formatted_polylines).to_csv('../Outputs/ros_cam1_20150408t061457.csv', header=None, index=None)
 
     # Figure initialization
     ax = plt3d.Axes3D(plt.figure())
