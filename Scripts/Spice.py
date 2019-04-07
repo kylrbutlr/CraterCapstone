@@ -295,7 +295,7 @@ def get_footprint(kernel_path:str, lbl_path:str, observing_body:str, target_body
 
 if __name__ == '__main__':
 
-    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20160112t230217.lbl', "ROS_NAVCAM-A",
+    region = get_footprint('../kernels/mk/ROS_OPS.TM', r'../67P/ros_cam1_20150408t061457.lbl', "ROS_NAVCAM-A",
                            "67P/C-G", "67P/C-G_CK")
 
     polyline = Util.convert_to_polyline(region)

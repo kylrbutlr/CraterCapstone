@@ -85,18 +85,24 @@ def get_image_size(lbl_text:str):
 def convert_to_polyline(points):
     point_dict = dict()
     for point1, point2 in points:
-        point_dict[tuple(point1)] = tuple(point2)
+        if tuple(point1) not in point_dict:
+            point_dict[tuple(point1)] = [tuple(point2)]
+        else:
+            point_dict[tuple(point1)].append(tuple(point2))
     result = []
     while point_dict:
-        key = next(iter(point_dict.values()))
-        val = point_dict[key]
+        key = next(iter(point_dict.keys()))
+        val = point_dict[key].pop()
         polyline_points = [np.asarray(key)]
-        point_dict.pop(key)
+        if not point_dict[key]:
+            point_dict.pop(key)
         while val in point_dict:
             polyline_points.append(np.asarray(val))
-            val = point_dict.pop(val)
-        if val == key:
-            polyline_points.append(np.asarray(val))  # Remove this line if line does not need first point
+            prev_val = val
+            val = point_dict[val].pop()
+            if not point_dict[prev_val]:
+                point_dict.pop(prev_val)
+        polyline_points.append(np.asarray(val))  # Remove this line if line does not need first point
         result.append(polyline_points)
     result = np.asarray(result)
     return result
