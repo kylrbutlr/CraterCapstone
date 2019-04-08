@@ -5,7 +5,6 @@ This is the input/output module for the system. It allows a user to
 input required data and generates a poly-line (list of coordinates) as output.
 """
 
-# Import packages/modules here
 import click
 import geometry
 import pandas as pd
@@ -16,7 +15,6 @@ import util
 @click.command()
 @click.option('--kernel_path', prompt='Spice meta-kernel file', help='The file path of the spice meta-kernel')
 @click.option('--lbl_path', prompt='Image lbl file', default='', help='Asteroid image')
-# @click.option('--shape', default='Irregular', help='The configuration of the shape for the model')
 @click.option('--observing_body', prompt='The observing body or spacecraft instrument', default='',
               help='Instrument used to capture photo')
 @click.option('--target_body', prompt='Target Body', default='', help='The target body that you want to observe')
