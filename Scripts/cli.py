@@ -55,7 +55,7 @@ def main(file_name: str, file_location:str, kernel_path: str, lbl_path: str, obs
     footprint = geometry.brute_force(observing_body, spice.get_id_code(observing_body), spice.convert_utc_to_et(time),
                                      size, target_body, target_body_frame, float(boundary_alpha_value))
 
-    polyline = util.convert_to_polyline(footprint)
+    polyline = util.format_output(footprint)
     formatted_polyline = util.prepare_to_save_to_file(polyline)
     pd.DataFrame(formatted_polyline).to_csv(file_location + file_name + '.csv', header=None, index=None)
 

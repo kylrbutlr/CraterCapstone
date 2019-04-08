@@ -131,11 +131,26 @@ def convert_points_to_lat_long(points):
     :return: point in Lat/Long coordinate system
     """
     lat_long_points = []
+
     for point in points:
         radius, lat, long = sp.reclat(point)
         lat_long_points.append([lat, long, radius])
     lat_long_points = np.asarray(lat_long_points)
     return lat_long_points
+
+
+def format_output(footprint_points):
+    """
+    Formats the output from Rectangular coordinates to Latitudinal
+    :param footprint_points: the points of the footprint in rectangular coordinates
+    :return: the points of the footprint in Latitudinal coordinates
+    """
+    polyline_result = []
+
+    polyline = convert_to_polyline(footprint_points)
+    for line in polyline:
+        polyline_result.append(convert_points_to_lat_long(line))
+    return polyline_result
 
 
 def prepare_to_save_to_file(polyline):
@@ -145,6 +160,7 @@ def prepare_to_save_to_file(polyline):
     :return: an array of formatted points where the definition of each point is separated by spaces
     """
     formatted_polylines = []
+
     for poly in polyline:
         formatted_polyline = []
         for point in poly:
