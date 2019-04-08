@@ -9,6 +9,7 @@ import numpy as np
 ### lbl file ###
 ################
 
+
 def get_lbl_information(path: str):
     """
     Returns the image time and size from the lbl file
