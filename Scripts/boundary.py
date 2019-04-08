@@ -1,21 +1,28 @@
+"""
+This script constructs the footprint when given a set of ray intercepts.
+In order to improve accuracy at the cost of run time efficiency, change the alpha value.
+The lower the alpha value the more accurate and intricate the polyline will be.
+"""
+
 import numpy as np
 from scipy.spatial import Delaunay
 
 
-def boundary(points):
+def boundary(points, alpha_value):
     """
     :param points: np.array of 3D points
+    :param alpha_value: the alpha value that determines the accuracy of the alpha shape
     :return: np.array of tuples corresponding to the vertices of the edges
     """
-    footprintPoints = []
-    edges = alpha_shape(points[:, :2], alpha=0.35, only_outer=True)
+    footprint_points = []
+    edges = alpha_shape(points[:, :2], alpha=alpha_value, only_outer=True)
 
     for i, j in edges:
-        footprintPoints.append((points[i], points[j]))
+        footprint_points.append((points[i], points[j]))
 
-    footprintPoints = np.array(footprintPoints)  # Converts to a numpy array
+    footprint_points = np.array(footprint_points)  # Converts to a numpy array
 
-    return footprintPoints
+    return footprint_points
 
 
 def alpha_shape(points, alpha, only_outer=True):
@@ -46,12 +53,14 @@ def alpha_shape(points, alpha, only_outer=True):
 
     tri = Delaunay(points)
     edges = set()
+
     # Loop over triangles:
     # ia, ib, ic = indices of corner points of the triangle
     for ia, ib, ic in tri.vertices:
         pa = points[ia]
         pb = points[ib]
         pc = points[ic]
+
         # Computing radius of triangle circumcircle
         # www.mathalino.com/reviewer/derivation-of-formulas/derivation-of-formula-for-radius-of-circumcircle
         a = np.sqrt((pa[0] - pb[0]) ** 2 + (pa[1] - pb[1]) ** 2)

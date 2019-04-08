@@ -1,6 +1,9 @@
 """
-This module is for useful classes that may be implemented and segmented into their own modules.
+This script provides utility functions to assist in miscellaneous tasks in the project.
 """
+
+import spiceypy as sp
+import numpy as np
 
 ################
 ### lbl file ###
@@ -82,3 +85,70 @@ def get_image_size(lbl_text: str):
         size = 0
 
     return size
+
+#########################
+### output formatting ###
+#########################
+
+
+def convert_to_polyline(points):
+    """
+    Transforms the definition of the edge points into a polyline
+    :param points: the array of points that make up an edge
+    :return: an array of points that define the polyline
+    """
+
+    point_dict = dict()
+    for point1, point2 in points:
+        if tuple(point1) not in point_dict:
+            point_dict[tuple(point1)] = [tuple(point2)]
+        else:
+            point_dict[tuple(point1)].append(tuple(point2))
+    result = []
+    while point_dict:
+        key = next(iter(point_dict.keys()))
+        val = point_dict[key].pop()
+        polyline_points = [np.asarray(key)]
+        if not point_dict[key]:
+            point_dict.pop(key)
+        while val in point_dict:
+            polyline_points.append(np.asarray(val))
+            prev_val = val
+            val = point_dict[val].pop()
+            if not point_dict[prev_val]:
+                point_dict.pop(prev_val)
+        polyline_points.append(np.asarray(val))  # Remove this line if line does not need first point
+        result.append(polyline_points)
+    result = np.asarray(result)
+    return result
+
+
+def convert_points_to_lat_long(points):
+    """
+    Takes a point in rectangular coordinates and converts it to Lat/Long coordinate system
+    :param points: point in the rectangular coordinates
+    :return: point in Lat/Long coordinate system
+    """
+    lat_long_points = []
+    for point in points:
+        radius, lat, long = sp.reclat(point)
+        lat_long_points.append([lat, long, radius])
+    lat_long_points = np.asarray(lat_long_points)
+    return lat_long_points
+
+
+def prepare_to_save_to_file(polyline):
+    """
+    Formats the polyline for output file
+    :param polyline: collection of points defining the polyline
+    :return: an array of formatted points where the definition of each point is separated by spaces
+    """
+    formatted_polylines = []
+    for poly in polyline:
+        formatted_polyline = []
+        for point in poly:
+            points_string = str(point[0]) + " " + str(point[1]) + " " + str(point[2])
+            formatted_polyline.append(points_string)
+        formatted_polylines.append(formatted_polyline)
+    formatted_polylines = np.asarray(formatted_polylines)
+    return formatted_polylines

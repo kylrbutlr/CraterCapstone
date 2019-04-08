@@ -1,9 +1,8 @@
 """
-This is the Geometry module, the powerhouse of the crater project. More documentation to come.
+This script executes the ray intercept functionality. Only instruments with rectangular field of views are implemented.
 """
 
-# Import packages/modules here
-from Spice import *
+from spice import *
 import numpy as np
 import boundary
 from spiceypy.utils.support_types import SpiceyError
@@ -93,7 +92,7 @@ def calculate_position_vectors_of_ray_surface_intercept(body, nacid, utc, num_of
     return data
 
 
-def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_reference):
+def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_reference, alpha_value):
     """
     Returns the footprint of the target body and the ray intercept points
     :param body: The observing or spacecraft body name
@@ -102,6 +101,7 @@ def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_refer
     :param num_of_samples: The number of samples squared
     :param target_body: the naif name of the target body
     :param target_body_reference: the reference frame name of the target body
+    :param alpha_value: the alpha value of the boundary
     :return: position_vectors: the coordinates of the edges of the footprint
                 points: the collection of ray intercept points
     """
@@ -110,6 +110,6 @@ def brute_force(body, nacid, utc, num_of_samples, target_body, target_body_refer
                                                                            target_body, target_body_reference)
 
     points = np.asarray(position_vectors)
-    position_vectors = boundary.boundary(points)
+    position_vectors = boundary.boundary(points, alpha_value)
 
     return position_vectors

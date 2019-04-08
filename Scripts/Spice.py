@@ -1,9 +1,8 @@
 """
-This is the Spice module. Put 'ya hot spicy code here.
-More documentation to come.
+This script declares the Spice function wrappers that are used in the project.
+The functions in this script are renamed in order to improve readability.
 """
 
-# Import packages/modules here
 import spiceypy as spice
 import enum
 import numpy as np
@@ -29,27 +28,6 @@ def get_id_code(name):
 ###########
 
 
-class KernelType(enum.Enum):
-    """
-    Enum types for kernels
-    ** means kernels we will most likely be working with
-
-    for more info about each type refer to:
-    https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/12_intro_to_kernels.pdf
-    """
-    SPK = 'spk'  # **Spacecraft and Planet Ephemeris
-    PCK = 'pck'  # Planetary Constants
-    IK = 'ik'  # **Instrument
-    CK = 'ck'  # **Camera Matrix (Orientation)
-    EK = 'ek'  # Events
-    FK = 'fk'  # **Reference Frame Specification
-    SCLK = 'sclk'  # **Spacecraft Clock Correlation
-    LSK = 'lsk'  # **Leap Seconds (Time)
-    MK = 'mk'  # **Meta-Kernel (for loading many kernels)
-    DSK = 'dsk'  # Digital Shape Kernel
-    DBK = 'dbk'  # Database Mechanism
-
-
 def load_kernel(file_name: str):
     """
     Load single or multiple kernels (through meta-kernel file, .mk)
@@ -72,16 +50,6 @@ def unload_all_kernels():
     Unloads all kernels
     """
     spice.kclear()
-
-
-def kernels_total(ktype: KernelType, value: int):
-    """
-    Check how many kernels are loaded for testing purposes
-    :param ktype: Kernel enum type
-    :param value: amount of kernels that should be loaded
-    :return: boolean if there is a correct amount of kernels loaded
-    """
-    return spice.ktotal(ktype.value) == value
 
 
 ########
@@ -122,24 +90,6 @@ def sp_kernel_position(main_body: str, time: float, reference_frame: str, correc
     """
 
     return spice.spkpos(main_body, time, reference_frame, correction, observing_body)
-
-
-def position_transformation_matrix(from_object: str, to_object: str, time: float):
-    """
-    Returns the transformation matrix of how the frame is moving
-
-    Example: position_transformation_matrix ( 'IAU_EARTH', 'J2000', ET  )
-
-    ftp://naif.jpl.nasa.gov/pub/naif/toolkit_docs/FORTRAN/spicelib/pxform.html
-
-    :param from_object: name of FK of which we are coming from
-    :param to_object: name of FK of which we are going to
-    :param time: Ephemeris Time Epoch of the rotation matrix
-    :return: ET is the amount the position has transformed (magnitude?),
-             The 3x3 transformation matrix M, where (x,y,z)^T *M = (x2,y2,z2)^T
-    """
-
-    return spice.pxform(from_object, to_object, time)
 
 
 ##############
