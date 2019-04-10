@@ -4,8 +4,6 @@ The functions in this script are renamed in order to improve readability.
 """
 
 import spiceypy as spice
-import enum
-import numpy as np
 from spiceypy.utils.support_types import SpiceyError
 
 

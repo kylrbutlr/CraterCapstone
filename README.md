@@ -20,23 +20,20 @@ Install SpiceyPy - [SpiceyPy installation instructions](https://github.com/Andre
 pip install spiceypy
 ```
 
-Install numpy, scipy, matplotlib packages from SciPy - [SciPy installation instructions](https://scipy.org/install.html)
+Install numpy, scipy packages from SciPy - [SciPy installation instructions](https://scipy.org/install.html)
 ```
-python -m install --user numpy scipy matplotlib
+python -m install --user numpy scipy
 ```
 
-Install enum - [PyPi installation instructions](https://pypi.org/project/enum/):
-```
-pip install enum
-```
+**or run from the executable, cli.exe, which has all the dependencies loaded in already.**
 
 ### Usage
 
-To call the program from the command-line of a bash script use this command.
+To call the program through the script from the command-line of a bash script use this command.
 
 NOTE: The new lines are only included for readability purposes. Do not include in actual call
 ```
-python CLI.py --kernel_path=<spice_kernel_path> --lbl_path=<image_lbl_file>
+python cli.py --kernel_path=<spice_kernel_path> --lbl_path=<image_lbl_file>
 --observing_body=<spacecraft> --target_body=<target_body_name> 
 --target_body_frame=<target_reference_frame> --sample_size_scalar=<sample_size_scalar> 
 --boundary_alpha_value=<boundary_alpha_value> --file_location =<output_file_path>
