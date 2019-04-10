@@ -2,9 +2,9 @@
 This script executes the ray intercept functionality. Only instruments with rectangular field of views are implemented.
 """
 
-from spice import *
+from .spice import *
 import numpy as np
-import boundary
+from . import boundary
 from spiceypy.utils.support_types import SpiceyError
 
 
